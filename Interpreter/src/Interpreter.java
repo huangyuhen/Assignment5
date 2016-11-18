@@ -1,7 +1,6 @@
 import java.io.*;
 import java.lang.*;
 import java.util.*;
-import java.util.regex.Matcher;
 import java.io.FileReader;
 
 
@@ -14,6 +13,22 @@ class LineObject{
 	}
 }
 
+class ProgramLineObject{
+	ProgramLineType type;
+	int lineNumber;
+	String contents;
+	public ProgramLineObject(ProgramLineType type, int lineNumber, String contents){
+		this.type = type;
+		this.lineNumber = lineNumber;
+		this.contents = contents;
+	}
+}
+
+enum ProgramLineType
+{
+	LOOPSTART, LOOPEND, STATEMENT
+}
+
 enum Type
 {
 	PROGRAM, END, LEFTCOMMENT, RIGHTCOMMENT, LEFTBRAC, RIGHTBRAC, LOOP
@@ -21,7 +36,7 @@ enum Type
 
 enum ErrorType
 {
-	SEMICOLON, PROGRAM, END, LEFTCOMMENT, RIGHTCOMMENT, LEFTBRAC, RIGHTBRAC, LOOP
+	SEMICOLON, PROGRAM, END, LEFTCOMMENT, RIGHTCOMMENT, LEFTBRAC, RIGHTBRAC, LOOP, EXTRASTATEMENT
 }
 
 class Error{
@@ -37,8 +52,8 @@ public class Interpreter {
 	private String[] code = null;
 	private ArrayList<Error> errorList = new ArrayList<>();
 	private ArrayList<Integer> ignoredLine = new ArrayList<>();
-	private ArrayList<Integer> programLine = new ArrayList<>();
-	private Deque<LineObject> stack = new ArrayDeque();
+	private ArrayList<ProgramLineObject> programLine = new ArrayList<>();
+	private Stack<LineObject> stack = new Stack<>();
 	private String[] contentsPreProcessing(String contents){
 		code = contents.split("\n");
 		/*replaceAll("program","(").replaceAll("end",")")
@@ -64,11 +79,11 @@ public class Interpreter {
 				checkIncomment = false;
 				if (stack.isEmpty() || stack.peek().type != Type.LEFTCOMMENT) {
 					errorList.add(new Error(ErrorType.RIGHTCOMMENT, lineCounter));
-					break;
+					return;
 				}
 				stack.pop();
 			}
-			if (checkIncomment){
+			if (checkIncomment || codes[i].trim().length() == 0){
 				if (!ignoredLine.contains(lineCounter))
 					ignoredLine.add(lineCounter);
 			}
@@ -76,10 +91,14 @@ public class Interpreter {
 		if (!stack.isEmpty()) {
 			while (!stack.isEmpty()) {
 				LineObject item = stack.pop();
-				if (item.type == Type.LEFTCOMMENT)
+				if (item.type == Type.LEFTCOMMENT) {
 					errorList.add(new Error(ErrorType.LEFTCOMMENT, item.lineNumber));
-				else if (item.type == Type.RIGHTCOMMENT)
+					return;
+				}
+				else if (item.type == Type.RIGHTCOMMENT) {
 					errorList.add(new Error(ErrorType.RIGHTCOMMENT, item.lineNumber));
+					return;
+				}
 			}
 		}
 	}
@@ -91,32 +110,43 @@ public class Interpreter {
 			lineCounter++;
 			if (!ignoredLine.contains(lineCounter) && codes[i].trim().equals("program")){
 				checkProgram = true;
-				if (!programLine.contains(lineCounter))
-					programLine.add(lineCounter);
+				if (!ignoredLine.contains(lineCounter))
+					ignoredLine.add(lineCounter);
 				stack.add(new LineObject(Type.PROGRAM,lineCounter));
+				continue;
 			}
-			if (!ignoredLine.contains(lineCounter) && codes[i].trim().equals("end")){
+			else if (!ignoredLine.contains(lineCounter) && codes[i].trim().equals("end")){
 				checkProgram = false;
 				if (!ignoredLine.contains(lineCounter))
 					ignoredLine.add(lineCounter);
 				if (stack.isEmpty() || stack.peek().type != Type.PROGRAM) {
 					errorList.add(new Error(ErrorType.PROGRAM, lineCounter));
-					break;
+					return;
 				}
 				stack.pop();
 			}
 			if (checkProgram){
-				if (!programLine.contains(lineCounter))
-					programLine.add(lineCounter);
+				if (!programLine.contains(lineCounter) && !ignoredLine.contains(lineCounter)) {
+					if (codes[i].trim().endsWith(";"))
+						programLine.add(new ProgramLineObject(ProgramLineType.STATEMENT, lineCounter, codes[i].trim()));
+					else if (codes[i].trim().endsWith("}"))
+						programLine.add(new ProgramLineObject(ProgramLineType.LOOPEND, lineCounter, codes[i].trim()));
+					else if (codes[i].trim().endsWith("{"))
+						programLine.add(new ProgramLineObject(ProgramLineType.LOOPSTART, lineCounter, codes[i].trim()));
+				}
 			}
 		}
 		if (!stack.isEmpty()) {
 			while (!stack.isEmpty()) {
 				LineObject item = stack.pop();
-				if (item.type == Type.PROGRAM)
+				if (item.type == Type.PROGRAM) {
 					errorList.add(new Error(ErrorType.PROGRAM, item.lineNumber));
-				else if (item.type == Type.END)
+					return;
+				}
+				else if (item.type == Type.END) {
 					errorList.add(new Error(ErrorType.END, item.lineNumber));
+					return;
+				}
 			}
 		}
 	}
@@ -126,20 +156,34 @@ public class Interpreter {
 		for (int i = 0; i < codes.length; i++) {
 			lineCounter++;
 			String[] lineToken = codes[i].trim().toLowerCase().split(" ");
-			if (!ignoredLine.contains(lineCounter) && lineToken[0].equals("{")){
-				if (stack.peek().type != Type.LOOP)
-					errorList.add(new Error(ErrorType.LOOP, lineCounter));
-				stack.add(new LineObject(Type.LEFTBRAC, lineCounter));
-			}
+//			if (!ignoredLine.contains(lineCounter) && lineToken[0].equals("{")){
+//				ignoredLine.add(lineCounter);
+//				if (stack.isEmpty() || stack.peek().type != Type.LOOP) {
+//					errorList.add(new Error(ErrorType.LOOP, lineCounter));
+//					return;
+//				}
+//				stack.add(new LineObject(Type.LEFTBRAC, lineCounter));
+//			}
 			if (!ignoredLine.contains(lineCounter) && lineToken[0].equals("loop")){
+				ignoredLine.add(lineCounter);
 				if (lineToken.length == 3 && lineToken[2].equals("{")) {
 					if (!ignoredLine.contains(lineCounter))
 						ignoredLine.add(lineCounter);
 					stack.add(new LineObject(Type.LOOP, lineCounter));
 					stack.add(new LineObject(Type.LEFTBRAC, lineCounter));
+					//programLine.remove(programLine.indexOf(lineCounter));
 				}
-				else{
-					errorList.add(new Error(ErrorType.LEFTBRAC, lineCounter));
+				else if (lineToken.length == 2 && lineToken[1].matches("\\d+")) {
+					ignoredLine.add(lineCounter);
+					if (!ignoredLine.contains(lineCounter))
+						ignoredLine.add(lineCounter);
+					stack.add(new LineObject(Type.LOOP, lineCounter));
+					//programLine.remove(programLine.indexOf(lineCounter));
+					//ignoredLine.add(lineCounter);
+				}
+				else {
+					errorList.add(new Error(ErrorType.LOOP, lineCounter));
+					return;
 				}
 			}
 			if (!ignoredLine.contains(lineCounter) && lineToken[0].equals("}")){
@@ -147,7 +191,7 @@ public class Interpreter {
 					ignoredLine.add(lineCounter);
 				if (stack.isEmpty() || stack.peek().type != Type.LEFTBRAC) {
 					errorList.add(new Error(ErrorType.RIGHTBRAC, lineCounter));
-					break;
+					return;
 				}
 				stack.pop();
 				if (stack.peek().type == Type.LOOP)
@@ -157,114 +201,86 @@ public class Interpreter {
 		if (!stack.isEmpty()) {
 			while (!stack.isEmpty()) {
 				LineObject item = stack.pop();
-				if (item.type == Type.LEFTBRAC)
+				if (item.type == Type.LEFTBRAC) {
 					errorList.add(new Error(ErrorType.LEFTBRAC, item.lineNumber));
-				else if (item.type == Type.RIGHTBRAC)
+					return;
+				}
+				else if (item.type == Type.RIGHTBRAC) {
 					errorList.add(new Error(ErrorType.RIGHTBRAC, item.lineNumber));
+					return;
+				}
 			}
 		}
 	}
-	/*private void errorCheck(String[] codes) {
-		Deque<LineObject> stack = new ArrayDeque();
-		ArrayList<Integer> ignoredLine = new ArrayList<>();
+	private void semiCheck(String[] codes) {
 		int lineCounter = 0;
-		boolean checkIncomment = false;
-		for (String s : codes) {
+		for (int i = 0; i < codes.length; i++) {
 			lineCounter++;
-			System.out.println(lineCounter);
-			char[] charArray = s.trim().toCharArray();
-			for (char c : charArray) {
-				if (checkIncomment && !ignoredLine.contains(lineCounter)) {
-					ignoredLine.add(lineCounter);
-				}
-				if (c == '(' && !checkIncomment) {
-					stack.push(new LineObject(c, lineCounter));
-					if (!ignoredLine.contains(lineCounter))
-						ignoredLine.add(lineCounter);
-					continue;
-				}
-				if (c == '[') {
-					stack.push(new LineObject(c, lineCounter));
-					if (!ignoredLine.contains(lineCounter))
-						ignoredLine.add(lineCounter);
-					checkIncomment = true;
-					continue;
-				}
-				if (c == '{' && !checkIncomment) {
-					stack.push(new LineObject(c, lineCounter));
-					if (!ignoredLine.contains(lineCounter))
-						ignoredLine.add(lineCounter);
-					continue;
-				}
-				if (c == ')' && !checkIncomment) {
-					if (stack.isEmpty() || stack.peek().character != '(')
-						errorList.add(new Error(ErrorType.END, lineCounter));
-					if (!ignoredLine.contains(lineCounter))
-						ignoredLine.add(lineCounter);
-					if (stack.isEmpty())
-						continue;
-					stack.pop();
-					continue;
-
-				}
-				if (c == ']') {
-					if (stack.isEmpty() || stack.peek().character != '[')
-						errorList.add(new Error(ErrorType.RIGHTCOMMENT, lineCounter));
-					if (!ignoredLine.contains(lineCounter))
-						ignoredLine.add(lineCounter);
-					checkIncomment = false;
-					if (stack.isEmpty())
-						continue;
-					stack.pop();
-					continue;
-				}
-				if (c == '}' && !checkIncomment) {
-					if (stack.isEmpty() || stack.peek().character != '{')
-						errorList.add(new Error(ErrorType.RIGHTBRAC, lineCounter));
-					if (!ignoredLine.contains(lineCounter))
-						ignoredLine.add(lineCounter);
-					if (stack.isEmpty())
-						continue;
-					stack.pop();
-					continue;
-				}
-			}
-			if (!ignoredLine.contains(lineCounter)) {
-				if (charArray[charArray.length - 1] != ';')
-					errorList.add(new Error(ErrorType.SEMICOLON, lineCounter));
+			String line = codes[i].trim().toLowerCase();
+			if (!ignoredLine.contains(lineCounter) && !line.endsWith(";") && line.length() != 0) {
+				errorList.add(new Error(ErrorType.SEMICOLON, lineCounter));
+				return;
 			}
 		}
-		if (!stack.isEmpty()) {
-			while (!stack.isEmpty()) {
-				LineObject item = stack.pop();
-				if (item.character == ';')
-					errorList.add(new Error(ErrorType.SEMICOLON, item.lineNumber));
-				else if (item.character == '(')
-					errorList.add(new Error(ErrorType.PROGRAM, item.lineNumber));
-				else if (item.character == ')')
-					errorList.add(new Error(ErrorType.END, item.lineNumber));
-				else if (item.character == '{')
-					errorList.add(new Error(ErrorType.LEFTBRAC, item.lineNumber));
-				else if (item.character == '}')
-					errorList.add(new Error(ErrorType.RIGHTBRAC, item.lineNumber));
-				else if (item.character == '[')
-					errorList.add(new Error(ErrorType.LEFTCOMMENT, item.lineNumber));
-				else if (item.character == ']')
-					errorList.add(new Error(ErrorType.RIGHTCOMMENT, item.lineNumber));
+	}
+
+	private void outSideStatementCheck(String[] codes) {
+		int lineCounter = 0;
+		ArrayList<Integer> programLinesExtracted = new ArrayList<>();
+		for (ProgramLineObject line : programLine){
+			programLinesExtracted.add(line.lineNumber);
+		}
+		for (int i = 0; i < codes.length; i++) {
+			lineCounter++;
+			String line = codes[i].trim().toLowerCase();
+			if (!ignoredLine.contains(lineCounter) && !programLinesExtracted.contains(lineCounter)) {
+				errorList.add(new Error(ErrorType.EXTRASTATEMENT, lineCounter));
+				return;
 			}
 		}
-		Collections.sort(errorList, new Comparator<Error>() {
-			@Override
-			public int compare(Error o1, Error o2) {
-				return o1.lineNumber - o2.lineNumber;
-			}
-		});
-	}*/
+	}
 
+	private void syntaxCheck(){
+		commentCheck(code);
+		if (!errorList.isEmpty()){
+			for (Error e: errorList){
+				System.out.println("Error Type is:" + e.errorType + " and the line number is: " + e.lineNumber);
+			}
+			return;
+		}
+		programCheck(code);
+		if (!errorList.isEmpty()){
+			for (Error e: errorList){
+				System.out.println("Error Type is:" + e.errorType + " and the line number is: " + e.lineNumber);
+			}
+			return;
+		}
+		bracCheck(code);
+		if (!errorList.isEmpty()){
+			for (Error e: errorList){
+				System.out.println("Error Type is:" + e.errorType + " and the line number is: " + e.lineNumber);
+			}
+			return;
+		}
+		semiCheck(code);
+		if (!errorList.isEmpty()){
+			for (Error e: errorList){
+				System.out.println("Error Type is:" + e.errorType + " and the line number is: " + e.lineNumber);
+			}
+			return;
+		}
+		outSideStatementCheck(code);
+		if (!errorList.isEmpty()){
+			for (Error e: errorList){
+				System.out.println("Error Type is:" + e.errorType + " and the line number is: " + e.lineNumber);
+			}
+			return;
+		}
+	}
 	private String filePath(){
-		Scanner reader = new Scanner(System.in);
-		System.out.println("Please enter the full file path with extension name");
-		String filePath = reader.nextLine();
+		//Scanner reader = new Scanner(System.in);
+		//System.out.println("Please enter the full file path with extension name");
+		String filePath = "/Users/yuhenghuang/GitHub/Assignment5/Interpreter/src/Test.txt";//reader.nextLine();
 		File file = new File(filePath);
 		if (!file.exists()){
 			System.out.println("Please enter a existing file.");
@@ -280,7 +296,7 @@ public class Interpreter {
 			String line = br.readLine();
 
 			while (line != null) {
-				sb.append(line);
+				sb.append(line.toLowerCase().trim());
 				sb.append(System.lineSeparator());
 				line = br.readLine();
 			}
@@ -293,9 +309,10 @@ public class Interpreter {
 	}
 	public static void main(String[] args){
 		Interpreter i = new Interpreter();
-		i.programCheck(i.contentsPreProcessing(i.readFile(i.filePath())));
-		for (Error e: i.errorList){
-			System.out.println("Error Type is:" + e.errorType + " and the line number is: " + e.lineNumber);
+		i.contentsPreProcessing(i.readFile(i.filePath()));
+		i.syntaxCheck();
+		for (ProgramLineObject line: i.programLine){
+			System.out.println(line.contents);
 		}
 	}
 }
