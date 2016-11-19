@@ -3,53 +3,54 @@ package VSAInterpreter;
 import java.util.*;
 
 public class Assignment5 {
+	// stored all value
+	final static HashMap<String, Value> map = new HashMap<>();
+
 	public static void main(String[] args) {
-		String command1 = "a = 3 ;";
-		String command2 = "a=b;";
-		String command3 = "loop x {";
-		String command4 = "}";
+		String command1 = "e = 2 ;";
+		String command2 = "a = 3.1;";
+		String command3 = "b =4;";
+		String command4 = "c= a ;";
+//		String command5 = "e = d;";
+		// String command6 = "loop x {";
+		// String command7 = "}";
 
 		// String lineNum Type
 		// Initialize, waiting Huang to passing the whole arraylist
 		ArrayList<ProgramLineObject> programLineObjects = new ArrayList<>();
 		programLineObjects.add(new ProgramLineObject(ProgramLineType.STATEMENT, 1, command1));
 		programLineObjects.add(new ProgramLineObject(ProgramLineType.STATEMENT, 2, command2));
-		programLineObjects.add(new ProgramLineObject(ProgramLineType.LOOPSTART, 3, command3));
-		programLineObjects.add(new ProgramLineObject(ProgramLineType.LOOPEND, 4, command4));
+		programLineObjects.add(new ProgramLineObject(ProgramLineType.STATEMENT, 3, command3));
+		programLineObjects.add(new ProgramLineObject(ProgramLineType.STATEMENT, 4, command4));
+//		programLineObjects.add(new ProgramLineObject(ProgramLineType.STATEMENT, 5, command5));
+//		programLineObjects.add(new ProgramLineObject(ProgramLineType.LOOPSTART, 6, command6));
+//		programLineObjects.add(new ProgramLineObject(ProgramLineType.LOOPEND, 7, command7));
 
 		// scanProgramLine
 		List<ProgramLineObject> executionLineObjects = scanProgramLineToExecutionLine(programLineObjects);
-		
 
-		for (ProgramLineObject plo : executionLineObjects) {
-			System.out.print(plo.contents);
-			System.out.print(plo.lineNumber);
-			System.out.println(plo.type);
+		// all the execution lines are in the executionLineObjects
+		// execute the lines one by one
+		while (!executionLineObjects.isEmpty()) {
+			// get the head of the line to execute
+			ProgramLineObject executingLine = executionLineObjects.get(0);
+			switch (executingLine.type) {
+			case STATEMENT:
+				executeStatementLine(executingLine);
+			case LOOPSTART:
+				executeLoopLine(executingLine);
+			case LOOPEND:
+			default:
+			}
+			// after this line got executed, remove the head of the line
+			executionLineObjects.remove(0);
 		}
 
-		HashMap<Character, Value> map = new HashMap<>();
-
-		map.put('a', new Value(".1"));
-		// map.put('b', new Value("2.0"));
-		// map.put('c', new Value("-03.4"));
-		// map.put('d', new Value("499"));
-		// map.put('e', new Value("0"));
-		// map.put('f', map.get('c'));
-		// map.put('g', new Value("6"));
-		// map.get('g').setValue("0.3");
-
-		// List<Value> list = new ArrayList<Value>();
-		// list.add(a);
-		// list.add(b);
-		// list.add(c);
-		// list.add(d);
-		// list.add(e);
-		// list.add(f);
-		// list.add(g);
-
-		for (char ch : map.keySet()) {
-			map.get(ch).getValue();
-		}
+		 for (String s : map.keySet()) {
+			 System.out.print(s);
+			 System.out.print("=");
+			 map.get(s).getValue();
+		 }
 	}
 
 	private static List<ProgramLineObject> scanProgramLineToExecutionLine(ArrayList<ProgramLineObject> programLineObjects) {
@@ -82,12 +83,12 @@ public class Assignment5 {
 		ErrorType errorType = null;
 		int errorLine = 0;
 
-//		System.out.print(lineObject.contents + " ");
-//		System.out.print(lineObject.lineNumber + " ");
-//		System.out.println(lineObject.type);
-//
+		// System.out.print(lineObject.contents + " ");
+		// System.out.print(lineObject.lineNumber + " ");
+		// System.out.println(lineObject.type);
+		//
 		String trimString = lineObject.contents.replace(" ", "");
-//		System.out.println("After token:  " + trimString);
+		// System.out.println("After token:  " + trimString);
 
 		// count number of "="
 		int numberOfEqual = 0;
@@ -131,7 +132,7 @@ public class Assignment5 {
 					}
 				}
 				// length is >1
-				else {//a=ab
+				else {// a=ab
 					if (!isIntFloat(tokens[1])) {
 						errorType = ErrorType.STATEMENT_INVALID_ASSIGNMENT_ERROR;
 						errorLine = lineObject.lineNumber;
@@ -148,6 +149,47 @@ public class Assignment5 {
 	}
 
 	private static void checkLoopStartValid(ProgramLineObject lineObject) {
+
+	}
+
+	private static void executeStatementLine(ProgramLineObject executingLine) {
+		String commandLine = executingLine.contents;
+		String trimString = commandLine.replace(" ", "");
+		String[] tokens = trimString.split("[=;]");
+		// leftValue = rightValue;
+		String leftValue = tokens[0];
+		String rightValue = tokens[1];
+
+		// a = b;
+		if (!isIntFloat(rightValue)) {
+			// (b not declared)
+			if (!map.containsKey(rightValue)) {
+				System.out.print(ErrorType.UNDECLARED_ERROR);
+				System.out.println(" line:" + executingLine.lineNumber);
+				System.exit(0);
+			}
+			// b declared
+			else {
+				// a not declared before
+				if (!map.containsKey(leftValue))
+					map.put(leftValue, map.get(rightValue));
+				// a declared before
+				else
+					map.get(leftValue).setValue(rightValue);
+			}
+		}
+		// a = 3;
+		else {
+			// a not declared before
+			if (!map.containsKey(leftValue))
+				map.put(leftValue, new Value(rightValue));
+			// a declared before
+			else
+				map.get(leftValue).setValue(rightValue);
+		}
+	}
+
+	private static void executeLoopLine(ProgramLineObject executingLine) {
 
 	}
 
@@ -222,9 +264,9 @@ enum ProgramLineType {
 }
 
 enum Type {
-	PROGRAM, END, LEFTCOMMENT, RIGHTCOMMENT, LEFTBRAC, RIGHTBRAC, LOOP
+	PROGRAM, END, LEFTCOMMENT, RIGHTCOMMENT, LEFTBRAC, RIGHTBRAC, LOOP,
 }
 
 enum ErrorType {
-	SEMICOLON, PROGRAM, END, LEFTCOMMENT, RIGHTCOMMENT, LEFTBRAC, RIGHTBRAC, LOOP, EXTRASTATEMENT, STATEMENT_EQUALSIGN_ERROR, STATEMENT_INVALID_ASSIGNMENT_ERROR
+	SEMICOLON, PROGRAM, END, LEFTCOMMENT, RIGHTCOMMENT, LEFTBRAC, RIGHTBRAC, LOOP, EXTRASTATEMENT, STATEMENT_EQUALSIGN_ERROR, STATEMENT_INVALID_ASSIGNMENT_ERROR, UNDECLARED_ERROR
 }
