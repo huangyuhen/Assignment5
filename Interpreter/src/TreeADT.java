@@ -1,43 +1,59 @@
+import java.text.*;
 /**
  * Created by rachel on 11/17/16.
  */
 public class TreeADT {
 
-    public static void main(String[] args)
+    /*public static void main(String[] args)
     {
         TreeADT tree = new TreeADT();
-        String pre[] = new String[]{"-", "+", "*","/", "-", "1","2","8","3","6","1.2"};
+        String pre[] = new String[]{"-", "+", "*", "-", "1","2","8","3","1.0"};
+        //String pre[] = new String[]{"+","-","7","8","1.456"};
         //String pre[] = new String[]{"+", "*", "+","1", "2", "3","4.5"};
         int size = pre.length;
         TreeNode root = tree.constructTree(pre, size);
         System.out.println("Inorder traversal of the constructed tree is ");
         tree.printInorder(root);
-        float result=tree.caculate(root);
-        System.out.println();
-        System.out.println(result);
+        tree.caculateTree(root);
+    }*/
 
-    }
-
-    float caculate(TreeNode node) throws ArithmeticException
+    float caculateTreeUtil(TreeNode node) throws ArithmeticException
     {
         if (node.data.equals("*"))
-            return caculate(node.left) * caculate(node.right);
+            return caculateTreeUtil(node.left) * caculateTreeUtil(node.right);
 
         else if (node.data.equals("/"))
         {
-            float quotient=caculate(node.left) / caculate(node.right);
+            float quotient=caculateTreeUtil(node.left) / caculateTreeUtil(node.right);
             if(quotient==Float.POSITIVE_INFINITY || quotient==Float.NEGATIVE_INFINITY)
                 throw new ArithmeticException("Divisor cannot be 0");
             return quotient;
         }
         else if (node.data.equals("+"))
-            return caculate(node.left) + caculate(node.right);
+            return caculateTreeUtil(node.left) + caculateTreeUtil(node.right);
         else if (node.data.equals("-"))
-            return caculate(node.left) - caculate(node.right);
-
+            return caculateTreeUtil(node.left) - caculateTreeUtil(node.right);
         else return Float.parseFloat(node.data);
     }
 
+    Object caculateTree(TreeNode node)
+    {
+        float caculationResult=caculateTreeUtil(node);
+        int toInt=0;
+        if((int)caculationResult==caculationResult)
+        {
+            Float newCaculation=new Float(caculationResult);
+            toInt=newCaculation.intValue();
+            System.out.println(toInt);
+            return toInt;
+        }
+        else
+        {
+            DecimalFormat formatedFloat = new DecimalFormat("#.##");
+            System.out.println(formatedFloat.format(caculationResult));
+            return Float.parseFloat(formatedFloat.format(caculationResult));
+        }
+    }
 
     Index index = new Index();
 
@@ -68,7 +84,7 @@ public class TreeADT {
         return root;
     }
 
-    boolean isFloat(String str) {
+    public boolean isFloat(String str) {
         try {
             Float.parseFloat(str);
             return true;
@@ -77,7 +93,7 @@ public class TreeADT {
         }
     }
 
-    boolean isInteger(String str) {
+    public boolean isInteger(String str) {
         try {
             Integer.parseInt(str);
             return true;
