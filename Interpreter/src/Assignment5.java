@@ -57,8 +57,8 @@ public class Assignment5 {
 
 		List<ProgramLineObject> executionLineObjectsList = new ArrayList<>();
 		for (ProgramLineObject lineObject : programLineObjects) {
-			checkLineTokens(lineObject);
-			executionLineObjectsList.add(lineObject);
+			checkLoopStartValid(lineObject);
+			//executionLineObjectsList.add(lineObject);
 		}
 		return executionLineObjectsList;
 	}
@@ -149,6 +149,44 @@ public class Assignment5 {
 	}
 
 	private static void checkLoopStartValid(ProgramLineObject lineObject) {
+		boolean validExecutionLine = true;
+		ErrorType errorType = null;
+		int errorLine = 0;
+
+		String[] tokenString = lineObject.contents.split(" ");
+		if (tokenString.length != 3){
+			errorType = ErrorType.LOOP;
+			errorLine = lineObject.lineNumber;
+			validExecutionLine = false;
+		}
+		else{
+			if (tokenString[1].matches("-?\\d+(\\.\\d+)?")) {
+				if (tokenString[1].contains(".")) {
+					errorType = ErrorType.FLOAT_NUMBER;
+					errorLine = lineObject.lineNumber;
+					validExecutionLine = false;
+				}
+			}
+			else{
+				if (tokenString[1].length() != 1) {
+					errorType = ErrorType.VARIABLE_NAME;
+					errorLine = lineObject.lineNumber;
+					validExecutionLine = false;
+				}
+				else{
+					if (!tokenString[1].matches(".*[a-z].*")){
+						errorType = ErrorType.INVALID_CHAR;
+						errorLine = lineObject.lineNumber;
+						validExecutionLine = false;
+					}
+				}
+			}
+		}
+		if (!validExecutionLine) {
+			System.out.print(errorType);
+			System.out.println(" line:" + errorLine);
+			System.exit(0);
+		}
 
 	}
 
@@ -209,17 +247,17 @@ public class Assignment5 {
 
 }
 
-class ProgramLineObject {
-	ProgramLineType type;
-	int lineNumber;
-	String contents;
-
-	public ProgramLineObject(ProgramLineType type, int lineNumber, String contents) {
-		this.type = type;
-		this.lineNumber = lineNumber;
-		this.contents = contents;
-	}
-}
+//class ProgramLineObject {
+//	ProgramLineType type;
+//	int lineNumber;
+//	String contents;
+//
+//	public ProgramLineObject(ProgramLineType type, int lineNumber, String contents) {
+//		this.type = type;
+//		this.lineNumber = lineNumber;
+//		this.contents = contents;
+//	}
+//}
 
 class Value {
 	int iValue;
@@ -268,5 +306,7 @@ enum Type {
 }
 
 enum ErrorType {
-	SEMICOLON, PROGRAM, END, LEFTCOMMENT, RIGHTCOMMENT, LEFTBRAC, RIGHTBRAC, LOOP, EXTRASTATEMENT, STATEMENT_EQUALSIGN_ERROR, STATEMENT_INVALID_ASSIGNMENT_ERROR, UNDECLARED_ERROR
+	SEMICOLON, PROGRAM, END, LEFTCOMMENT, RIGHTCOMMENT, LEFTBRAC, RIGHTBRAC, LOOP,
+	EXTRASTATEMENT, STATEMENT_EQUALSIGN_ERROR, STATEMENT_INVALID_ASSIGNMENT_ERROR,
+	UNDECLARED_ERROR, FLOAT_NUMBER, VARIABLE_NAME, INVALID_CHAR
 }
