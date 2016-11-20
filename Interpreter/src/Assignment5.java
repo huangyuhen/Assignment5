@@ -9,9 +9,16 @@ public class Assignment5 {
 	public static void main(String[] args) {
 		String command1 = "e = 2 ;";
 		String command2 = "a = 3.1;";
-		String command3 = "b =4;";
-		String command4 = "c= a ;";
+		String command3 = "printcr \"fuck u\";";
+		String command4 = "printcr e;";
+		String command5 = "printcr a;";
+		String command6 = "printcr b;";
+		
+		// String command4 = "c= a ;";
 //		String command5 = "e = d;";
+		// String command3 = "b =4;";
+		// String command4 = "c= a ;";
+		// String command5 = "e = d;";
 		// String command6 = "loop x {";
 		// String command7 = "}";
 
@@ -22,9 +29,11 @@ public class Assignment5 {
 		programLineObjects.add(new ProgramLineObject(ProgramLineType.STATEMENT, 2, command2));
 		programLineObjects.add(new ProgramLineObject(ProgramLineType.STATEMENT, 3, command3));
 		programLineObjects.add(new ProgramLineObject(ProgramLineType.STATEMENT, 4, command4));
-//		programLineObjects.add(new ProgramLineObject(ProgramLineType.STATEMENT, 5, command5));
-//		programLineObjects.add(new ProgramLineObject(ProgramLineType.LOOPSTART, 6, command6));
-//		programLineObjects.add(new ProgramLineObject(ProgramLineType.LOOPEND, 7, command7));
+		programLineObjects.add(new ProgramLineObject(ProgramLineType.STATEMENT, 5, command5));
+		programLineObjects.add(new ProgramLineObject(ProgramLineType.STATEMENT, 6, command6));
+		
+		// programLineObjects.add(new ProgramLineObject(ProgramLineType.LOOPEND,
+		// 7, command7));
 
 		// scanProgramLine
 		List<ProgramLineObject> executionLineObjects = scanProgramLineToExecutionLine(programLineObjects);
@@ -37,8 +46,10 @@ public class Assignment5 {
 			switch (executingLine.type) {
 			case STATEMENT:
 				executeStatementLine(executingLine);
+				break;
 			case LOOPSTART:
 				executeLoopLine(executingLine);
+				break;
 			case LOOPEND:
 			default:
 			}
@@ -46,19 +57,20 @@ public class Assignment5 {
 			executionLineObjects.remove(0);
 		}
 
-		 for (String s : map.keySet()) {
-			 System.out.print(s);
-			 System.out.print("=");
-			 map.get(s).getValue();
-		 }
+		for (String s : map.keySet()) {
+			System.out.print(s);
+			System.out.print("=");
+			map.get(s).getValue();
+		}
 	}
 
 	private static List<ProgramLineObject> scanProgramLineToExecutionLine(ArrayList<ProgramLineObject> programLineObjects) {
 
 		List<ProgramLineObject> executionLineObjectsList = new ArrayList<>();
 		for (ProgramLineObject lineObject : programLineObjects) {
-			checkLoopStartValid(lineObject);
-			//executionLineObjectsList.add(lineObject);
+			checkLineTokens(lineObject);
+			// checkLoopStartValid(lineObject);
+			executionLineObjectsList.add(lineObject);
 		}
 		return executionLineObjectsList;
 	}
@@ -69,16 +81,98 @@ public class Assignment5 {
 		switch (lineObject.type) {
 		case STATEMENT:
 			checkStatementValid(lineObject);
+			break;
 		case LOOPSTART:
 			checkLoopStartValid(lineObject);
+			break;
 		case LOOPEND:
 		default:
+			break;
 		}
 	}
 
 	// return VOID if correct
 	// only stop and exit when error
 	private static void checkStatementValid(ProgramLineObject lineObject) {
+		// get first token by white space, for scan PRINT statement
+		String[] preTokens = lineObject.contents.split("\\s+");
+		String firstToken = preTokens[0].toLowerCase();
+		if (firstToken.equals("print") || firstToken.equals("printcr"))
+			checkStatementValid_print(lineObject);
+		else
+			checkStatementValid_assign(lineObject);
+	}
+	
+	private static void checkStatementValid_print(ProgramLineObject lineObject) {
+		boolean validExecutionLine = true;
+		ErrorType errorType = null;
+		int errorLine = 0;
+		
+		String trimString = lineObject.contents.replace(";", "");
+		
+		int numberOfQuotes = 0;
+		for (int i = 0; i < trimString.length(); i++) {
+			if (trimString.charAt(i) == '"')
+				numberOfQuotes++;
+		}
+		
+		//print "
+		if(numberOfQuotes!=0){
+			if(numberOfQuotes==2){
+				int firstQuoteIndex = trimString.indexOf("\"");
+				int endOfFirstToken = trimString.indexOf(" ");
+
+				//print a"x"
+				if(firstQuoteIndex!=(endOfFirstToken+1)){
+					errorType = ErrorType.STATEMENT_ERROR;
+					errorLine = lineObject.lineNumber;
+					validExecutionLine = false;
+				}
+			}
+			//" not =2
+			else{
+				errorType = ErrorType.STATEMENT_ERROR;
+				errorLine = lineObject.lineNumber;
+				validExecutionLine = false;
+			}
+		}
+		//print cb
+		//printcr c d
+		//print 1
+		else{
+			String[] preTokens = trimString.split("\\s+");
+			char c = preTokens[1].charAt(0);
+
+			//printcr c d
+			if(preTokens.length!=2){
+				errorType = ErrorType.STATEMENT_ERROR;
+				errorLine = lineObject.lineNumber;
+				validExecutionLine = false;
+			}
+			//print cb
+			else if(preTokens[1].length()!=1){
+				errorType = ErrorType.STATEMENT_ERROR;
+				errorLine = lineObject.lineNumber;
+				validExecutionLine = false;
+			}
+			//print 1
+			else if (!Character.isLetter(c)){
+				errorType = ErrorType.STATEMENT_ERROR;
+				errorLine = lineObject.lineNumber;
+				validExecutionLine = false;
+			}
+		}
+		if (validExecutionLine == false) {
+			System.out.print(errorType);
+			System.out.println(" line:" + errorLine);
+			System.exit(0);
+		}
+		
+	}
+
+	// return VOID if correct
+	// only stop and exit when error
+	private static void checkStatementValid_assign(ProgramLineObject lineObject) {
 		boolean validExecutionLine = true;
 		ErrorType errorType = null;
 		int errorLine = 0;
@@ -98,7 +192,7 @@ public class Assignment5 {
 		}
 
 		if (numberOfEqual != 1) {// a==3
-			errorType = ErrorType.STATEMENT_EQUALSIGN_ERROR;
+			errorType = ErrorType.STATEMENT_ERROR;
 			errorLine = lineObject.lineNumber;
 			validExecutionLine = false;
 		} else {
@@ -154,27 +248,24 @@ public class Assignment5 {
 		int errorLine = 0;
 
 		String[] tokenString = lineObject.contents.split(" ");
-		if (tokenString.length != 3){
+		if (tokenString.length != 3) {
 			errorType = ErrorType.LOOP;
 			errorLine = lineObject.lineNumber;
 			validExecutionLine = false;
-		}
-		else{
+		} else {
 			if (tokenString[1].matches("-?\\d+(\\.\\d+)?")) {
 				if (tokenString[1].contains(".")) {
 					errorType = ErrorType.FLOAT_NUMBER;
 					errorLine = lineObject.lineNumber;
 					validExecutionLine = false;
 				}
-			}
-			else{
+			} else {
 				if (tokenString[1].length() != 1) {
 					errorType = ErrorType.VARIABLE_NAME;
 					errorLine = lineObject.lineNumber;
 					validExecutionLine = false;
-				}
-				else{
-					if (!tokenString[1].matches(".*[a-z].*")){
+				} else {
+					if (!tokenString[1].matches(".*[a-z].*")) {
 						errorType = ErrorType.INVALID_CHAR;
 						errorLine = lineObject.lineNumber;
 						validExecutionLine = false;
@@ -191,6 +282,54 @@ public class Assignment5 {
 	}
 
 	private static void executeStatementLine(ProgramLineObject executingLine) {
+		// get first token by white space, for scan PRINT statement
+		String[] preTokens = executingLine.contents.split("\\s+");
+		String firstToken = preTokens[0].toLowerCase();
+		if (firstToken.equals("print") || firstToken.equals("printcr"))
+			executeStatementLine_print(executingLine);
+		else
+			executeStatementLine_assign(executingLine);
+	}
+	
+	private static void executeStatementLine_print(ProgramLineObject executingLine) {					
+		String trimString = executingLine.contents.replace(";", "");
+		
+		String[] preTokens = trimString.split("\\s+");
+		String firstToken = preTokens[0].toLowerCase();
+		
+		int firstQuote = trimString.indexOf("\"");
+		int secondQuote = trimString.indexOf("\"", trimString.indexOf("\"")+1);
+		//print "x";
+		if(firstQuote>0){
+			if(firstToken.equals("print"))
+				System.out.print(trimString.substring(firstQuote+1, secondQuote));
+			else
+				System.out.println(trimString.substring(firstQuote+1, secondQuote));
+		}
+		//print a;
+		else{
+			//a not declared
+			String secondToken = preTokens[1].toLowerCase();
+			
+			if (!map.containsKey(secondToken)) {
+				System.out.print(ErrorType.UNDECLARED_ERROR);
+				System.out.println(" line:" + executingLine.lineNumber);
+				System.exit(0);
+			}
+			else{
+				if(firstToken.equals("print"))
+					map.get(secondToken).getValue();
+				else{
+					map.get(secondToken).getValue();
+					System.out.println();
+				}
+			}
+		}
+
+	}
+		
+		
+	private static void executeStatementLine_assign(ProgramLineObject executingLine) {	
 		String commandLine = executingLine.contents;
 		String trimString = commandLine.replace(" ", "");
 		String[] tokens = trimString.split("[=;]");
@@ -247,17 +386,17 @@ public class Assignment5 {
 
 }
 
-//class ProgramLineObject {
-//	ProgramLineType type;
-//	int lineNumber;
-//	String contents;
-//
-//	public ProgramLineObject(ProgramLineType type, int lineNumber, String contents) {
-//		this.type = type;
-//		this.lineNumber = lineNumber;
-//		this.contents = contents;
-//	}
-//}
+class ProgramLineObject {
+	ProgramLineType type;
+	int lineNumber;
+	String contents;
+
+	public ProgramLineObject(ProgramLineType type, int lineNumber, String contents) {
+		this.type = type;
+		this.lineNumber = lineNumber;
+		this.contents = contents;
+	}
+}
 
 class Value {
 	int iValue;
@@ -287,9 +426,9 @@ class Value {
 
 	public void getValue() {
 		if (this.type == ValueType.IntegerType)
-			System.out.println(this.iValue);
+			System.out.print(this.iValue);
 		else
-			System.out.println(this.fValue);
+			System.out.print(this.fValue);
 	}
 }
 
@@ -306,7 +445,5 @@ enum Type {
 }
 
 enum ErrorType {
-	SEMICOLON, PROGRAM, END, LEFTCOMMENT, RIGHTCOMMENT, LEFTBRAC, RIGHTBRAC, LOOP,
-	EXTRASTATEMENT, STATEMENT_EQUALSIGN_ERROR, STATEMENT_INVALID_ASSIGNMENT_ERROR,
-	UNDECLARED_ERROR, FLOAT_NUMBER, VARIABLE_NAME, INVALID_CHAR
+	SEMICOLON, PROGRAM, END, LEFTCOMMENT, RIGHTCOMMENT, LEFTBRAC, RIGHTBRAC, LOOP, EXTRASTATEMENT, STATEMENT_ERROR, STATEMENT_INVALID_ASSIGNMENT_ERROR, UNDECLARED_ERROR, FLOAT_NUMBER, VARIABLE_NAME, INVALID_CHAR
 }
