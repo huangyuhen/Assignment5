@@ -1,12 +1,17 @@
+import EnumerationTypes.*;
+import ObjectTypes.ProgramLineObject;
+import ObjectTypes.Value;
+
 import java.util.*;
 
-public class Assignment5 extends SyntaxCheckADT{
+public class Execution{
 	// stored all value
 	final static HashMap<String, Value> map = new HashMap<>();
 	ArrayList<ProgramLineObject> programLineObjects;
-	public Assignment5(ArrayList<ProgramLineObject> list){
+	public Execution(ArrayList<ProgramLineObject> list){
 		programLineObjects = list;
 	}
+
 	public void executeLines(){
 		List<ProgramLineObject> executionLineObjects = scanProgramLineToExecutionLine(programLineObjects);
 
@@ -535,62 +540,3 @@ public class Assignment5 extends SyntaxCheckADT{
 //	}
 //}
 
-class Value {
-	int iValue;
-	float fValue;
-	ValueType type;
-
-	public Value(String input) {
-		if (input.contains(".")) {
-			this.fValue = Float.parseFloat(input);
-			this.type = ValueType.FloatType;
-		} else {
-			this.iValue = Integer.parseInt(input);
-			this.type = ValueType.IntegerType;
-		}
-	}
-
-	// override the whole Value
-	public void setValue(String input) {
-		if (input.contains(".")) {
-			this.fValue = Float.parseFloat(input);
-			this.type = ValueType.FloatType;
-		} else {
-			this.iValue = Integer.parseInt(input);
-			this.type = ValueType.IntegerType;
-		}
-	}
-
-	public String getValue() {
-		String valueString ="";
-		if (this.type == ValueType.IntegerType)
-			valueString=Integer.toString(this.iValue);
-		else
-			valueString=Float.toString(this.fValue);
-		return valueString;
-	}
-	
-	public void printValue() {
-		if (this.type == ValueType.IntegerType)
-			System.out.print(this.iValue);
-		else
-			System.out.print(this.fValue);
-	}
-	
-}
-
-//enum ValueType {
-//	IntegerType, FloatType
-//}
-//
-//enum ProgramLineType {
-//	LOOPSTART, LOOPEND, STATEMENT
-//}
-//
-//enum Type {
-//	PROGRAM, END, LEFTCOMMENT, RIGHTCOMMENT, LEFTBRAC, RIGHTBRAC, LOOP,
-//}
-//
-//enum ErrorType {
-//	SEMICOLON, PROGRAM, END, LEFTCOMMENT, RIGHTCOMMENT, LEFTBRAC, RIGHTBRAC, LOOP, EXTRASTATEMENT, STATEMENT_ERROR, STATEMENT_INVALID_ASSIGNMENT_ERROR, UNDECLARED_ERROR, FLOAT_NUMBER, VARIABLE_NAME, INVALID_CHAR
-//}

@@ -1,87 +1,25 @@
+import EnumerationTypes.ErrorType;
+import EnumerationTypes.ProgramLineType;
+import EnumerationTypes.Type;
+import ObjectTypes.Error;
+import ObjectTypes.LineObject;
+import ObjectTypes.LoopObject;
+import ObjectTypes.ProgramLineObject;
+
 import java.io.*;
 import java.lang.*;
 import java.util.*;
 import java.io.FileReader;
 
 
-class LineObject{
-	Type type;
-	int lineNumber;
-	public LineObject(Type type, int lineNumber){
-		this.type = type;
-		this.lineNumber = lineNumber;
-	}
-}
-
-class LoopObject{
-	int startIndex;
-	int endIndex;
-	String numOfExcution;
-	String originalNumOfExcution;
-	int numOfExcutionInNum;
-	int originalNumOfExcutionInNum;
-	int previousLoopInNum;
-	ArrayList<Integer> previousLoops;
-	public LoopObject(int startIndex, int endIndex, String numOfExcution, String originalNumOfExcution, ArrayList<Integer> previousLoops){
-		this.startIndex = startIndex;
-		this.endIndex = endIndex;
-		this.numOfExcution = numOfExcution;
-		this.originalNumOfExcution = originalNumOfExcution;
-		this.previousLoops = previousLoops;
-		this.numOfExcutionInNum = -1;
-		this.originalNumOfExcutionInNum = -1;
-		this.previousLoopInNum = -1;
-	}
-
-
-}
-class ProgramLineObject{
-	ProgramLineType type;
-	int lineNumber;
-	String contents;
-	LoopObject loopObject;
-	public ProgramLineObject(ProgramLineType type, int lineNumber, String contents, LoopObject loopObject){
-		this.type = type;
-		this.lineNumber = lineNumber;
-		this.contents = contents;
-		this.loopObject = loopObject;
-	}
-}
-
-enum ProgramLineType
-{
-	LOOPSTART, LOOPEND, STATEMENT
-}
-
-enum Type
-{
-	PROGRAM, END, LEFTCOMMENT, RIGHTCOMMENT, LEFTBRAC, RIGHTBRAC, LOOP
-}
-
-enum ValueType {
-	IntegerType, FloatType
-}
-
-enum ErrorType {
-	SEMICOLON, PROGRAM, END, LEFTCOMMENT, RIGHTCOMMENT, LEFTBRAC, RIGHTBRAC, LOOP, EXTRASTATEMENT, STATEMENT_ERROR, STATEMENT_INVALID_ASSIGNMENT_ERROR, UNDECLARED_ERROR, FLOAT_NUMBER, VARIABLE_NAME, INVALID_CHAR
-}
-
-class Error{
-	ErrorType errorType;
-	int lineNumber;
-	public Error(ErrorType errorType, int lineNumber){
-		this.errorType = errorType;
-		this.lineNumber = lineNumber;
-	}
-}
-
 public class SyntaxCheckADT {
 	private String[] code = null;
 	private ArrayList<Error> errorList = new ArrayList<>();
 	private ArrayList<Integer> ignoredLine = new ArrayList<>();
-	private ArrayList<ProgramLineObject> programLine = new ArrayList<>();
+	public ArrayList<ProgramLineObject> programLine = new ArrayList<>();
 	private Stack<LineObject> stack = new Stack<>();
-	private String[] contentsPreProcessing(String contents){
+
+	public String[] contentsPreProcessing(String contents){
 		code = contents.split("\n");
 		return code;
 	}
@@ -264,7 +202,7 @@ public class SyntaxCheckADT {
 		}
 	}
 
-	private void programLineProcess() {
+	public void programLineProcess() {
 		int lineCounter = 0;
 		ArrayList<ProgramLineObject> loopLines = new ArrayList<>();
 		for (int i = 0; i < programLine.size(); i++){
@@ -287,23 +225,9 @@ public class SyntaxCheckADT {
 				}
 			}
 		}
-//		for (ProgramLineObject line : programLine){
-//			if (line.type == ProgramLineType.LOOPSTART){
-//				System.out.println("Start line number "  + programLine.get(line.loopObject.startIndex).lineNumber);
-//				System.out.println("End line number " + programLine.get(line.loopObject.endIndex).lineNumber);
-//				System.out.println("numOfExcution " + line.loopObject.numOfExcution);
-//				System.out.println("originalNumOfExcution " + line.loopObject.originalNumOfExcution);
-//				for (String s: line.loopObject.previousLoops){
-//					System.out.println("loops " + s);
-//				}
-//			}
-//			if (line.type == ProgramLineType.LOOPEND){
-//				System.out.println(line.loopObject.startIndex);
-//			}
-//		}
 	}
 
-	private void syntaxCheck(){
+	public void syntaxCheck(){
 		commentCheck(code);
 		if (!errorList.isEmpty()){
 			for (Error e: errorList){
@@ -339,43 +263,5 @@ public class SyntaxCheckADT {
 			}
 			return;
 		}
-	}
-	private String filePath(){
-		//Scanner reader = new Scanner(System.in);
-		//System.out.println("Please enter the full file path with extension name");
-		String filePath = "/Users/yuhenghuang/GitHub/Assignment5/Interpreter/src/Test.txt";//reader.nextLine();
-		File file = new File(filePath);
-		if (!file.exists()){
-			System.out.println("Please enter a existing file.");
-			return filePath();
-		}
-		return filePath;
-	}
-
-	private String readFile(String path) {
-		try {
-			BufferedReader br = new BufferedReader(new FileReader(path));
-			StringBuilder sb = new StringBuilder();
-			String line = br.readLine();
-
-			while (line != null) {
-				sb.append(line.toLowerCase().trim());
-				sb.append(System.lineSeparator());
-				line = br.readLine();
-			}
-			br.close();
-			return sb.toString();
-		} catch (IOException e){
-			System.out.println("Empty file name, start again");
-		}
-		return null;
-	}
-	public static void main(String[] args){
-		SyntaxCheckADT i = new SyntaxCheckADT();
-		i.contentsPreProcessing(i.readFile(i.filePath()));
-		i.syntaxCheck();
-		i.programLineProcess();
-		Assignment5 a = new Assignment5(i.programLine);
-		a.executeLines();
 	}
 }
