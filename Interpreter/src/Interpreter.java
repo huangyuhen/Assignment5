@@ -13,14 +13,36 @@ class LineObject{
 	}
 }
 
+class LoopObject{
+	int startIndex;
+	int endIndex;
+	String numOfExcution;
+	String originalNumOfExcution;
+	int numOfExcutionInNum;
+	int originalNumOfExcutionInNum;
+	ArrayList<String> previousLoops;
+	public LoopObject(int startIndex, int endIndex, String numOfExcution, String originalNumOfExcution, ArrayList<String> previousLoops){
+		this.startIndex = startIndex;
+		this.endIndex = endIndex;
+		this.numOfExcution = numOfExcution;
+		this.originalNumOfExcution = originalNumOfExcution;
+		this.previousLoops = previousLoops;
+		this.numOfExcutionInNum = -1;
+		this.originalNumOfExcutionInNum = -1;
+	}
+
+
+}
 class ProgramLineObject{
 	ProgramLineType type;
 	int lineNumber;
 	String contents;
-	public ProgramLineObject(ProgramLineType type, int lineNumber, String contents){
+	LoopObject loopObject;
+	public ProgramLineObject(ProgramLineType type, int lineNumber, String contents, LoopObject loopObject){
 		this.type = type;
 		this.lineNumber = lineNumber;
 		this.contents = contents;
+		this.loopObject = loopObject;
 	}
 }
 
@@ -34,9 +56,12 @@ enum Type
 	PROGRAM, END, LEFTCOMMENT, RIGHTCOMMENT, LEFTBRAC, RIGHTBRAC, LOOP
 }
 
-enum ErrorType
-{
-	SEMICOLON, PROGRAM, END, LEFTCOMMENT, RIGHTCOMMENT, LEFTBRAC, RIGHTBRAC, LOOP, EXTRASTATEMENT
+enum ValueType {
+	IntegerType, FloatType
+}
+
+enum ErrorType {
+	SEMICOLON, PROGRAM, END, LEFTCOMMENT, RIGHTCOMMENT, LEFTBRAC, RIGHTBRAC, LOOP, EXTRASTATEMENT, STATEMENT_ERROR, STATEMENT_INVALID_ASSIGNMENT_ERROR, UNDECLARED_ERROR, FLOAT_NUMBER, VARIABLE_NAME, INVALID_CHAR
 }
 
 class Error{
@@ -56,9 +81,6 @@ public class Interpreter {
 	private Stack<LineObject> stack = new Stack<>();
 	private String[] contentsPreProcessing(String contents){
 		code = contents.split("\n");
-		/*replaceAll("program","(").replaceAll("end",")")
-				.replaceAll("/", Matcher.quoteReplacement("[")).replaceAll("\\*","#")
-				.replaceAll("#\\[","]").replaceAll("\\[#","[").split("\n");*/
 		return code;
 	}
 
@@ -128,11 +150,11 @@ public class Interpreter {
 			if (checkProgram){
 				if (!programLine.contains(lineCounter) && !ignoredLine.contains(lineCounter)) {
 					if (codes[i].trim().endsWith(";"))
-						programLine.add(new ProgramLineObject(ProgramLineType.STATEMENT, lineCounter, codes[i].trim()));
+						programLine.add(new ProgramLineObject(ProgramLineType.STATEMENT, lineCounter, codes[i].trim(), null));
 					else if (codes[i].trim().endsWith("}"))
-						programLine.add(new ProgramLineObject(ProgramLineType.LOOPEND, lineCounter, codes[i].trim()));
+						programLine.add(new ProgramLineObject(ProgramLineType.LOOPEND, lineCounter, codes[i].trim(), null));
 					else if (codes[i].trim().endsWith("{"))
-						programLine.add(new ProgramLineObject(ProgramLineType.LOOPSTART, lineCounter, codes[i].trim()));
+						programLine.add(new ProgramLineObject(ProgramLineType.LOOPSTART, lineCounter, codes[i].trim(), null));
 				}
 			}
 		}
@@ -240,6 +262,45 @@ public class Interpreter {
 		}
 	}
 
+	private void programLineProcess() {
+		int lineCounter = 0;
+		ArrayList<ProgramLineObject> loopLines = new ArrayList<>();
+		for (int i = 0; i < programLine.size(); i++){
+			if (programLine.get(i).type == ProgramLineType.LOOPSTART){
+				String[] extractedLoopLine = programLine.get(i).contents.split(" ");
+				ArrayList<String> previousLoops = new ArrayList<>();
+				//previousLoops.add("1");
+				programLine.get(i).loopObject = new LoopObject(i, -1, extractedLoopLine[1], extractedLoopLine[1], previousLoops);
+				loopLines.add(programLine.get(i));
+			}
+			else if (programLine.get(i).type == ProgramLineType.LOOPEND){
+				if (!loopLines.isEmpty()){
+					loopLines.get(loopLines.size() - 1).loopObject.endIndex = i;
+					programLine.get(i).loopObject = new LoopObject(loopLines.get(loopLines.size() - 1).loopObject.startIndex, i, null, null, null);
+					for (int j = loopLines.size() - 2; j >= 0; j--){
+						String[] extractedInfo = loopLines.get(j).contents.split(" ");
+						loopLines.get(loopLines.size() - 1).loopObject.previousLoops.add(extractedInfo[1]);
+					}
+					loopLines.remove(loopLines.size() - 1);
+				}
+			}
+		}
+//		for (ProgramLineObject line : programLine){
+//			if (line.type == ProgramLineType.LOOPSTART){
+//				System.out.println("Start line number "  + programLine.get(line.loopObject.startIndex).lineNumber);
+//				System.out.println("End line number " + programLine.get(line.loopObject.endIndex).lineNumber);
+//				System.out.println("numOfExcution " + line.loopObject.numOfExcution);
+//				System.out.println("originalNumOfExcution " + line.loopObject.originalNumOfExcution);
+//				for (String s: line.loopObject.previousLoops){
+//					System.out.println("loops " + s);
+//				}
+//			}
+//			if (line.type == ProgramLineType.LOOPEND){
+//				System.out.println(line.loopObject.startIndex);
+//			}
+//		}
+	}
+
 	private void syntaxCheck(){
 		commentCheck(code);
 		if (!errorList.isEmpty()){
@@ -311,8 +372,8 @@ public class Interpreter {
 		Interpreter i = new Interpreter();
 		i.contentsPreProcessing(i.readFile(i.filePath()));
 		i.syntaxCheck();
-		for (ProgramLineObject line: i.programLine){
-			System.out.println(line.contents);
-		}
+		i.programLineProcess();
+		Assignment5 a = new Assignment5(i.programLine);
+		a.executeLines();
 	}
 }

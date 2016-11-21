@@ -1,12 +1,48 @@
-package VSAInterpreter;
+//package VSAInterpreter;
 
 import java.util.*;
 
-public class Assignment5 {
+public class Assignment5 extends Interpreter{
 	// stored all value
 	final static HashMap<String, Value> map = new HashMap<>();
+	ArrayList<ProgramLineObject> programLineObjects;
+	public Assignment5(ArrayList<ProgramLineObject> list){
+		programLineObjects = list;
+	}
+	public void executeLines(){
+		List<ProgramLineObject> executionLineObjects = scanProgramLineToExecutionLine(programLineObjects);
 
-	public static void main(String[] args) {
+		int executionIndex = 0;
+		// all the execution lines are in the executionLineObjects
+		// execute the lines one by one
+		while (executionIndex < programLineObjects.size()) {
+			// get the head of the line to execute
+			ProgramLineObject executingLine = executionLineObjects.get(executionIndex);
+			switch (executingLine.type) {
+				case STATEMENT:
+					executeStatementLine(executingLine);
+					executionIndex++;
+					break;
+				case LOOPSTART:
+					executionIndex = executeLoopLine(executingLine);
+					break;
+				case LOOPEND:
+					executionIndex = executeLoopLine(executingLine);
+					break;
+				default:
+			}
+			// after this line got executed, remove the head of the line
+			//executionLineObjects.remove(0);
+
+		}
+
+		for (String s : map.keySet()) {
+			System.out.print(s);
+			System.out.print("=");
+			map.get(s).getValue();
+		}
+	}
+	/*public static void main(String[] args) {
 		String command1 = "e = 2 ;";
 		String command2 = "a = 3.1;";
 		String command3 = "printcr \"fuck u\";";
@@ -62,9 +98,9 @@ public class Assignment5 {
 			System.out.print("=");
 			map.get(s).getValue();
 		}
-	}
+	}*/
 
-	private static List<ProgramLineObject> scanProgramLineToExecutionLine(ArrayList<ProgramLineObject> programLineObjects) {
+	public static List<ProgramLineObject> scanProgramLineToExecutionLine(ArrayList<ProgramLineObject> programLineObjects) {
 
 		List<ProgramLineObject> executionLineObjectsList = new ArrayList<>();
 		for (ProgramLineObject lineObject : programLineObjects) {
@@ -102,7 +138,7 @@ public class Assignment5 {
 		else
 			checkStatementValid_assign(lineObject);
 	}
-	
+
 	private static void checkStatementValid_print(ProgramLineObject lineObject) {
 		boolean validExecutionLine = true;
 		ErrorType errorType = null;
@@ -366,8 +402,39 @@ public class Assignment5 {
 		}
 	}
 
-	private static void executeLoopLine(ProgramLineObject executingLine) {
-
+	private int executeLoopLine(ProgramLineObject executingLine) {
+		if (executingLine.type == ProgramLineType.LOOPSTART){
+			String[] tokenString = executingLine.contents.split(" ");
+			if (tokenString[1].matches("-?\\d+(\\.\\d+)?")){
+				if (executingLine.loopObject.originalNumOfExcutionInNum == -1){
+					executingLine.loopObject.originalNumOfExcutionInNum = Integer.parseInt(tokenString[1]);
+					executingLine.loopObject.numOfExcutionInNum = Integer.parseInt(tokenString[1]);
+					return executingLine.loopObject.startIndex + 1;
+				}
+				else if (executingLine.loopObject.numOfExcutionInNum > 0) {
+					executingLine.loopObject.numOfExcutionInNum--;
+					return executingLine.loopObject.startIndex + 1;
+				}
+				else{
+					return executingLine.loopObject.endIndex + 1;
+				}
+			}
+			else{
+				if (executingLine.loopObject.originalNumOfExcutionInNum == -1) {
+					if (map.get(tokenString[1]).type == ValueType.IntegerType) {
+						executingLine.loopObject.originalNumOfExcutionInNum = map.get(tokenString[1]).iValue;
+						executingLine.loopObject.numOfExcutionInNum = map.get(tokenString[1]).iValue;
+						return executingLine.loopObject.startIndex + 1;
+					}
+				}
+			}
+			//executingLine.loopObject.numOfExcution
+		}
+		else if (executingLine.type == ProgramLineType.LOOPEND){
+			programLineObjects.get(executingLine.loopObject.startIndex).loopObject.numOfExcutionInNum--;
+			return executingLine.loopObject.startIndex;
+		}
+		return -1;
 	}
 
 	private static boolean isIntFloat(String str) {
@@ -386,17 +453,17 @@ public class Assignment5 {
 
 }
 
-class ProgramLineObject {
-	ProgramLineType type;
-	int lineNumber;
-	String contents;
-
-	public ProgramLineObject(ProgramLineType type, int lineNumber, String contents) {
-		this.type = type;
-		this.lineNumber = lineNumber;
-		this.contents = contents;
-	}
-}
+//class ProgramLineObject {
+//	ProgramLineType type;
+//	int lineNumber;
+//	String contents;
+//
+//	public ProgramLineObject(ProgramLineType type, int lineNumber, String contents) {
+//		this.type = type;
+//		this.lineNumber = lineNumber;
+//		this.contents = contents;
+//	}
+//}
 
 class Value {
 	int iValue;
@@ -432,18 +499,18 @@ class Value {
 	}
 }
 
-enum ValueType {
-	IntegerType, FloatType
-}
-
-enum ProgramLineType {
-	LOOPSTART, LOOPEND, STATEMENT
-}
-
-enum Type {
-	PROGRAM, END, LEFTCOMMENT, RIGHTCOMMENT, LEFTBRAC, RIGHTBRAC, LOOP,
-}
-
-enum ErrorType {
-	SEMICOLON, PROGRAM, END, LEFTCOMMENT, RIGHTCOMMENT, LEFTBRAC, RIGHTBRAC, LOOP, EXTRASTATEMENT, STATEMENT_ERROR, STATEMENT_INVALID_ASSIGNMENT_ERROR, UNDECLARED_ERROR, FLOAT_NUMBER, VARIABLE_NAME, INVALID_CHAR
-}
+//enum ValueType {
+//	IntegerType, FloatType
+//}
+//
+//enum ProgramLineType {
+//	LOOPSTART, LOOPEND, STATEMENT
+//}
+//
+//enum Type {
+//	PROGRAM, END, LEFTCOMMENT, RIGHTCOMMENT, LEFTBRAC, RIGHTBRAC, LOOP,
+//}
+//
+//enum ErrorType {
+//	SEMICOLON, PROGRAM, END, LEFTCOMMENT, RIGHTCOMMENT, LEFTBRAC, RIGHTBRAC, LOOP, EXTRASTATEMENT, STATEMENT_ERROR, STATEMENT_INVALID_ASSIGNMENT_ERROR, UNDECLARED_ERROR, FLOAT_NUMBER, VARIABLE_NAME, INVALID_CHAR
+//}
