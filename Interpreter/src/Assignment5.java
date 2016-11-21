@@ -354,9 +354,9 @@ public class Assignment5 extends Interpreter{
 			}
 			else{
 				if(firstToken.equals("print"))
-					map.get(secondToken).getValue();
+					map.get(secondToken).printValue();
 				else{
-					map.get(secondToken).getValue();
+					map.get(secondToken).printValue();
 					System.out.println();
 				}
 			}
@@ -388,7 +388,7 @@ public class Assignment5 extends Interpreter{
 					map.put(leftValue, map.get(rightValue));
 				// a declared before
 				else
-					map.get(leftValue).setValue(rightValue);
+					map.get(leftValue).setValue(map.get(rightValue).getValue());
 			}
 		}
 		// a = 3;
@@ -398,7 +398,7 @@ public class Assignment5 extends Interpreter{
 				map.put(leftValue, new Value(rightValue));
 			// a declared before
 			else
-				map.get(leftValue).setValue(rightValue);
+				map.get(leftValue).setValue(map.get(rightValue).getValue());
 		}
 	}
 
@@ -519,12 +519,22 @@ class Value {
 		}
 	}
 
-	public void getValue() {
+	public String getValue() {
+		String valueString ="";
+		if (this.type == ValueType.IntegerType)
+			valueString=Integer.toString(this.iValue);
+		else
+			valueString=Float.toString(this.fValue);
+		return valueString;
+	}
+	
+	public void printValue() {
 		if (this.type == ValueType.IntegerType)
 			System.out.print(this.iValue);
 		else
 			System.out.print(this.fValue);
 	}
+	
 }
 
 //enum ValueType {
