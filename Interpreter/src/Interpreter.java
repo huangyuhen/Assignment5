@@ -20,8 +20,9 @@ class LoopObject{
 	String originalNumOfExcution;
 	int numOfExcutionInNum;
 	int originalNumOfExcutionInNum;
-	ArrayList<String> previousLoops;
-	public LoopObject(int startIndex, int endIndex, String numOfExcution, String originalNumOfExcution, ArrayList<String> previousLoops){
+	int previousLoopInNum;
+	ArrayList<Integer> previousLoops;
+	public LoopObject(int startIndex, int endIndex, String numOfExcution, String originalNumOfExcution, ArrayList<Integer> previousLoops){
 		this.startIndex = startIndex;
 		this.endIndex = endIndex;
 		this.numOfExcution = numOfExcution;
@@ -29,6 +30,7 @@ class LoopObject{
 		this.previousLoops = previousLoops;
 		this.numOfExcutionInNum = -1;
 		this.originalNumOfExcutionInNum = -1;
+		this.previousLoopInNum = -1;
 	}
 
 
@@ -268,7 +270,7 @@ public class Interpreter {
 		for (int i = 0; i < programLine.size(); i++){
 			if (programLine.get(i).type == ProgramLineType.LOOPSTART){
 				String[] extractedLoopLine = programLine.get(i).contents.split(" ");
-				ArrayList<String> previousLoops = new ArrayList<>();
+				ArrayList<Integer> previousLoops = new ArrayList<>();
 				//previousLoops.add("1");
 				programLine.get(i).loopObject = new LoopObject(i, -1, extractedLoopLine[1], extractedLoopLine[1], previousLoops);
 				loopLines.add(programLine.get(i));
@@ -279,7 +281,7 @@ public class Interpreter {
 					programLine.get(i).loopObject = new LoopObject(loopLines.get(loopLines.size() - 1).loopObject.startIndex, i, null, null, null);
 					for (int j = loopLines.size() - 2; j >= 0; j--){
 						String[] extractedInfo = loopLines.get(j).contents.split(" ");
-						loopLines.get(loopLines.size() - 1).loopObject.previousLoops.add(extractedInfo[1]);
+						loopLines.get(loopLines.size() - 1).loopObject.previousLoops.add(loopLines.get(j).loopObject.startIndex);
 					}
 					loopLines.remove(loopLines.size() - 1);
 				}

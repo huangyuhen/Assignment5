@@ -408,7 +408,7 @@ public class Assignment5 extends Interpreter{
 			if (tokenString[1].matches("-?\\d+(\\.\\d+)?")){
 				if (executingLine.loopObject.originalNumOfExcutionInNum == -1){
 					executingLine.loopObject.originalNumOfExcutionInNum = Integer.parseInt(tokenString[1]);
-					executingLine.loopObject.numOfExcutionInNum = Integer.parseInt(tokenString[1]);
+					executingLine.loopObject.numOfExcutionInNum = Integer.parseInt(tokenString[1]) - 1;
 					return executingLine.loopObject.startIndex + 1;
 				}
 				else if (executingLine.loopObject.numOfExcutionInNum > 0) {
@@ -416,6 +416,17 @@ public class Assignment5 extends Interpreter{
 					return executingLine.loopObject.startIndex + 1;
 				}
 				else{
+					if (programLineObjects.get(executingLine.loopObject.startIndex).loopObject.previousLoops.size() > 0){
+						if (programLineObjects.get(programLineObjects.get(executingLine.loopObject.startIndex).loopObject.previousLoops.get(0)).loopObject.numOfExcutionInNum > 0) {
+							executingLine.loopObject.numOfExcutionInNum = executingLine.loopObject.originalNumOfExcutionInNum;
+							return executingLine.loopObject.endIndex + 1;
+						}
+						else{
+							programLineObjects.get(executingLine.loopObject.startIndex).loopObject.previousLoops.remove(0);
+							executingLine.loopObject.numOfExcutionInNum = executingLine.loopObject.originalNumOfExcutionInNum;
+							return executingLine.loopObject.endIndex + 1;
+						}
+					}
 					return executingLine.loopObject.endIndex + 1;
 				}
 			}
@@ -427,11 +438,28 @@ public class Assignment5 extends Interpreter{
 						return executingLine.loopObject.startIndex + 1;
 					}
 				}
+				else if (executingLine.loopObject.numOfExcutionInNum > 0) {
+					executingLine.loopObject.numOfExcutionInNum--;
+					return executingLine.loopObject.startIndex + 1;
+				}
+				else{
+					if (programLineObjects.get(executingLine.loopObject.startIndex).loopObject.previousLoops.size() > 0){
+						if (programLineObjects.get(programLineObjects.get(executingLine.loopObject.startIndex).loopObject.previousLoops.get(0)).loopObject.numOfExcutionInNum > 0) {
+							executingLine.loopObject.numOfExcutionInNum = executingLine.loopObject.originalNumOfExcutionInNum;
+							return executingLine.loopObject.endIndex + 1;
+						}
+						else{
+							programLineObjects.get(executingLine.loopObject.startIndex).loopObject.previousLoops.remove(0);
+							executingLine.loopObject.numOfExcutionInNum = executingLine.loopObject.originalNumOfExcutionInNum;
+							return executingLine.loopObject.endIndex + 1;
+						}
+					}
+					return executingLine.loopObject.endIndex + 1;
+				}
 			}
 			//executingLine.loopObject.numOfExcution
 		}
 		else if (executingLine.type == ProgramLineType.LOOPEND){
-			programLineObjects.get(executingLine.loopObject.startIndex).loopObject.numOfExcutionInNum--;
 			return executingLine.loopObject.startIndex;
 		}
 		return -1;
