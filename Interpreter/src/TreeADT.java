@@ -4,6 +4,7 @@ import java.text.*;
  */
 public class TreeADT {
 
+    private Index index = new Index();
     /*public static void main(String[] args)
     {
         TreeADT tree = new TreeADT();
@@ -17,7 +18,7 @@ public class TreeADT {
         tree.caculateTree(root);
     }*/
 
-    float caculateTreeUtil(TreeNode node) throws ArithmeticException
+    public float caculateTreeUtil(TreeNode node) throws ArithmeticException
     {
         if (node.data.equals("*"))
             return caculateTreeUtil(node.left) * caculateTreeUtil(node.right);
@@ -36,7 +37,7 @@ public class TreeADT {
         else return Float.parseFloat(node.data);
     }
 
-    Object caculateTree(TreeNode node)
+    public Object caculateTree(TreeNode node)
     {
         float caculationResult=caculateTreeUtil(node);
         int toInt=0;
@@ -44,20 +45,18 @@ public class TreeADT {
         {
             Float newCaculation=new Float(caculationResult);
             toInt=newCaculation.intValue();
-            System.out.println(toInt);
+            //System.out.println(toInt);
             return toInt;
         }
         else
         {
             DecimalFormat formatedFloat = new DecimalFormat("#.##");
-            System.out.println(formatedFloat.format(caculationResult));
+            //System.out.println(formatedFloat.format(caculationResult));
             return Float.parseFloat(formatedFloat.format(caculationResult));
         }
     }
 
-    Index index = new Index();
-
-    TreeNode constructTreeUtil(String pre[], Index preIndex, int low, int high, int size) {
+    private TreeNode constructTreeUtil(String pre[], Index preIndex, int low, int high, int size) {
 
         if (preIndex.index >= size || low > high) {
             return null;
@@ -84,7 +83,7 @@ public class TreeADT {
         return root;
     }
 
-    public boolean isFloat(String str) {
+    private boolean isFloat(String str) {
         try {
             Float.parseFloat(str);
             return true;
@@ -93,7 +92,7 @@ public class TreeADT {
         }
     }
 
-    public boolean isInteger(String str) {
+    private boolean isInteger(String str) {
         try {
             Integer.parseInt(str);
             return true;
@@ -102,8 +101,8 @@ public class TreeADT {
         }
     }
 
-    TreeNode constructTree(String pre[], int size) {
-        return constructTreeUtil(pre, index, 0, size - 1, size);
+    public TreeNode constructTree(String pre[], int size) {
+        return constructTreeUtil(pre, index , 0, size - 1, size);
     }
 
     void printInorder(TreeNode node) {
@@ -129,7 +128,7 @@ class TreeNode
     TreeNode right;
 
     public TreeNode(String str) {
-        data = str;
+        this.data = str;
         this.left = null;
         this.right = null;
     }

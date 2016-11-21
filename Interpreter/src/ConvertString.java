@@ -3,11 +3,11 @@ import java.util.*;
 /**
  * Created by rachel on 11/18/16.
  */
-public class ConvertString {
+public class ConvertString{
 
 
     //Main function called by caller to convert string to Array.
-    public String[] StringToArray(String input)
+    public static String[] StringToArray(String input)
     {
         if(input==null || input.isEmpty())
         {
@@ -35,7 +35,7 @@ public class ConvertString {
             return convertedArray;
     }
 
-    String[] revertToArray(String input)
+    private static String[] revertToArray(String input)
     {
             if(!input.contains(","))
                 return null;
@@ -49,7 +49,7 @@ public class ConvertString {
             array = list.toArray(new String[list.size()]);
             return array;
     }
-    boolean ifCorrectOrder(String []array)
+    private static boolean ifCorrectOrder(String []array)
     {
         List<String> newList=new ArrayList<String>();
         for(String s:array)
@@ -69,7 +69,7 @@ public class ConvertString {
         return false;
     }
 
-    boolean ifCorrectOperatorsAndNumbers(String []array)
+    private static boolean ifCorrectOperatorsAndNumbers(String []array)
     {
         for(String s:array)
         {
@@ -81,7 +81,7 @@ public class ConvertString {
         return true;
     }
 
-    boolean ifOperational(String []array)
+    private static boolean ifOperational(String []array)
     {
         int count=0;
         int length=array.length;
@@ -90,8 +90,6 @@ public class ConvertString {
             for (int i = 0; i < length; i++) {
                 if (!isFloat(array[i]) && !isInteger(array[i]))
                     count++;
-                else
-                    break;
             }
             if (count == length - count - 1)
                 return true;
@@ -100,7 +98,7 @@ public class ConvertString {
         return false;
     }
 
-    public boolean isFloat(String str) {
+    private static boolean isFloat(String str) {
         try {
             Float.parseFloat(str);
             return true;
@@ -109,7 +107,7 @@ public class ConvertString {
         }
     }
 
-    public boolean isInteger(String str) {
+    private static boolean isInteger(String str) {
         try {
             Integer.parseInt(str);
             return true;

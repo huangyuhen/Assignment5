@@ -1,8 +1,6 @@
-//package VSAInterpreter;
-
 import java.util.*;
 
-public class Assignment5 extends Interpreter{
+public class Assignment5 extends SyntaxCheckADT{
 	// stored all value
 	final static HashMap<String, Value> map = new HashMap<>();
 	ArrayList<ProgramLineObject> programLineObjects;
@@ -36,70 +34,12 @@ public class Assignment5 extends Interpreter{
 
 		}
 
-		for (String s : map.keySet()) {
-			System.out.print(s);
-			System.out.print("=");
-			map.get(s).getValue();
-		}
+//		for (String s : map.keySet()) {
+//			System.out.print(s);
+//			System.out.print("=");
+//			map.get(s).getValue();
+//		}
 	}
-	/*public static void main(String[] args) {
-		String command1 = "e = 2 ;";
-		String command2 = "a = 3.1;";
-		String command3 = "printcr \"fuck u\";";
-		String command4 = "printcr e;";
-		String command5 = "printcr a;";
-		String command6 = "printcr b;";
-		
-		// String command4 = "c= a ;";
-//		String command5 = "e = d;";
-		// String command3 = "b =4;";
-		// String command4 = "c= a ;";
-		// String command5 = "e = d;";
-		// String command6 = "loop x {";
-		// String command7 = "}";
-
-		// String lineNum Type
-		// Initialize, waiting Huang to passing the whole arraylist
-		ArrayList<ProgramLineObject> programLineObjects = new ArrayList<>();
-		programLineObjects.add(new ProgramLineObject(ProgramLineType.STATEMENT, 1, command1));
-		programLineObjects.add(new ProgramLineObject(ProgramLineType.STATEMENT, 2, command2));
-		programLineObjects.add(new ProgramLineObject(ProgramLineType.STATEMENT, 3, command3));
-		programLineObjects.add(new ProgramLineObject(ProgramLineType.STATEMENT, 4, command4));
-		programLineObjects.add(new ProgramLineObject(ProgramLineType.STATEMENT, 5, command5));
-		programLineObjects.add(new ProgramLineObject(ProgramLineType.STATEMENT, 6, command6));
-		
-		// programLineObjects.add(new ProgramLineObject(ProgramLineType.LOOPEND,
-		// 7, command7));
-
-		// scanProgramLine
-		List<ProgramLineObject> executionLineObjects = scanProgramLineToExecutionLine(programLineObjects);
-
-		// all the execution lines are in the executionLineObjects
-		// execute the lines one by one
-		while (!executionLineObjects.isEmpty()) {
-			// get the head of the line to execute
-			ProgramLineObject executingLine = executionLineObjects.get(0);
-			switch (executingLine.type) {
-			case STATEMENT:
-				executeStatementLine(executingLine);
-				break;
-			case LOOPSTART:
-				executeLoopLine(executingLine);
-				break;
-			case LOOPEND:
-			default:
-			}
-			// after this line got executed, remove the head of the line
-			executionLineObjects.remove(0);
-		}
-
-		for (String s : map.keySet()) {
-			System.out.print(s);
-			System.out.print("=");
-			map.get(s).getValue();
-		}
-	}*/
-
 	public static List<ProgramLineObject> scanProgramLineToExecutionLine(ArrayList<ProgramLineObject> programLineObjects) {
 
 		List<ProgramLineObject> executionLineObjectsList = new ArrayList<>();
@@ -126,6 +66,7 @@ public class Assignment5 extends Interpreter{
 			break;
 		}
 	}
+
 
 	// return VOID if correct
 	// only stop and exit when error
@@ -263,6 +204,10 @@ public class Assignment5 extends Interpreter{
 				}
 				// length is >1
 				else {// a=ab
+
+					//check comma to go to tree validation.
+					if (tokens[1].contains(","))
+						return;
 					if (!isIntFloat(tokens[1])) {
 						errorType = ErrorType.STATEMENT_INVALID_ASSIGNMENT_ERROR;
 						errorLine = lineObject.lineNumber;
@@ -323,10 +268,107 @@ public class Assignment5 extends Interpreter{
 		String firstToken = preTokens[0].toLowerCase();
 		if (firstToken.equals("print") || firstToken.equals("printcr"))
 			executeStatementLine_print(executingLine);
+		else if(executingLine.contents.contains(",")){
+			checkStringValidation(executingLine);
+			executeStatementLine_assignWithOperation(executingLine);
+		}
 		else
 			executeStatementLine_assign(executingLine);
 	}
-	
+
+	private static void executeStatementLine_assignWithOperation(ProgramLineObject executingLine) {
+		String commandLine = executingLine.contents;
+		String trimString = commandLine.replace(" ", "");
+		String[] tokens = trimString.split("[=;]");
+		String[] calculationTokens = tokens[1].split(",");
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0;i<calculationTokens.length - 1;i++){
+			if (!calculationTokens[i].matches("-?\\d+(\\.\\d+)?")) {
+				if (calculationTokens[i].equals("+") || calculationTokens[i].equals("-") || calculationTokens[i].equals("*") || calculationTokens[i].equals("/")) {
+					sb.append(calculationTokens[i]).append(",");
+					continue;
+				}
+				else{
+					if (map.get(calculationTokens[i]).type == ValueType.IntegerType){
+						sb.append(map.get(calculationTokens[i]).iValue).append(",");
+					}
+					else{
+						sb.append(map.get(calculationTokens[i]).fValue).append(",");
+					}
+				}
+			}
+			else{
+				sb.append(calculationTokens[i]).append(",");
+			}
+		}
+		int lastIndex = calculationTokens.length - 1;
+		if (!calculationTokens[lastIndex].matches("-?\\d+(\\.\\d+)?")) {
+			if (calculationTokens[lastIndex].equals("+") || calculationTokens[lastIndex].equals("-") ||
+					calculationTokens[lastIndex].equals("*") || calculationTokens[lastIndex].equals("/")) {
+				sb.append(calculationTokens[lastIndex]);
+			} else {
+				if (map.get(calculationTokens[lastIndex]).type == ValueType.IntegerType) {
+					sb.append(map.get(calculationTokens[lastIndex]).iValue);
+				} else {
+					sb.append(map.get(calculationTokens[lastIndex]).fValue);
+				}
+			}
+		}
+		else {
+			sb.append(calculationTokens[lastIndex]);
+		}
+		//System.out.println(sb.toString());
+		String[] convertedVersion = ConvertString.StringToArray(sb.toString());
+		if (convertedVersion == null){
+			System.exit(0);
+		}
+		else {
+			TreeADT newTree = new TreeADT();
+			TreeNode root = newTree.constructTree(convertedVersion, convertedVersion.length);
+			Object result = newTree.caculateTree(root);
+			if (!map.containsKey(tokens[0])) {
+				map.put(tokens[0], new Value(result.toString()));
+			}
+			else
+				map.get(tokens[0]).setValue(result.toString());
+		}
+	}
+
+	private static void checkStringValidation(ProgramLineObject executingLine){
+		boolean validExecutionLine = true;
+		ErrorType errorType = null;
+		int errorLine = 0;
+		String trimString = executingLine.contents.replace(" ", "");
+		String[] tokens = trimString.split("[=;]");
+		String[] calculationTokens = tokens[1].split(",");
+		for (int i = 0; i < calculationTokens.length;i++) {
+			//System.out.println(calculationTokens[i]);
+			if (!calculationTokens[i].matches("-?\\d+(\\.\\d+)?")) {
+				if (calculationTokens[i].length() != 1){
+					errorType = ErrorType.VARIABLE_NAME;
+					errorLine = executingLine.lineNumber;
+					validExecutionLine = false;
+					break;
+				}
+				else{
+					if (calculationTokens[i].equals("+") || calculationTokens[i].equals("-") || calculationTokens[i].equals("*") || calculationTokens[i].equals("/")){
+						continue;
+					}
+					if (map.get(calculationTokens[i]) == null){
+						errorType = ErrorType.UNDECLARED_ERROR;
+						errorLine = executingLine.lineNumber;
+						validExecutionLine = false;
+						break;
+					}
+				}
+			}
+		}
+		if (!validExecutionLine) {
+			System.out.print(errorType);
+			System.out.println(" line:" + errorLine);
+			System.exit(0);
+		}
+	}
 	private static void executeStatementLine_print(ProgramLineObject executingLine) {					
 		String trimString = executingLine.contents.replace(";", "");
 		
@@ -434,7 +476,7 @@ public class Assignment5 extends Interpreter{
 				if (executingLine.loopObject.originalNumOfExcutionInNum == -1) {
 					if (map.get(tokenString[1]).type == ValueType.IntegerType) {
 						executingLine.loopObject.originalNumOfExcutionInNum = map.get(tokenString[1]).iValue;
-						executingLine.loopObject.numOfExcutionInNum = map.get(tokenString[1]).iValue;
+						executingLine.loopObject.numOfExcutionInNum = map.get(tokenString[1]).iValue - 1;
 						return executingLine.loopObject.startIndex + 1;
 					}
 				}

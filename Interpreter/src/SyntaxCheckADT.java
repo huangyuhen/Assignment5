@@ -75,7 +75,7 @@ class Error{
 	}
 }
 
-public class Interpreter {
+public class SyntaxCheckADT {
 	private String[] code = null;
 	private ArrayList<Error> errorList = new ArrayList<>();
 	private ArrayList<Integer> ignoredLine = new ArrayList<>();
@@ -371,7 +371,7 @@ public class Interpreter {
 		return null;
 	}
 	public static void main(String[] args){
-		Interpreter i = new Interpreter();
+		SyntaxCheckADT i = new SyntaxCheckADT();
 		i.contentsPreProcessing(i.readFile(i.filePath()));
 		i.syntaxCheck();
 		i.programLineProcess();
