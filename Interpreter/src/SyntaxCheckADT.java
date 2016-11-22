@@ -40,7 +40,7 @@ public class SyntaxCheckADT {
 					ignoredLine.add(lineCounter);
 				checkIncomment = false;
 				if (stack.isEmpty() || stack.peek().type != Type.LEFTCOMMENT) {
-					errorList.add(new Error(ErrorType.RIGHTCOMMENT, lineCounter));
+					errorList.add(new Error(ErrorType.RIGHTCOMMENT, lineCounter, code[i]));
 					return;
 				}
 				stack.pop();
@@ -54,11 +54,11 @@ public class SyntaxCheckADT {
 			while (!stack.isEmpty()) {
 				LineObject item = stack.pop();
 				if (item.type == Type.LEFTCOMMENT) {
-					errorList.add(new Error(ErrorType.LEFTCOMMENT, item.lineNumber));
+					errorList.add(new Error(ErrorType.LEFTCOMMENT, item.lineNumber, code[item.lineNumber - 1]));
 					return;
 				}
 				else if (item.type == Type.RIGHTCOMMENT) {
-					errorList.add(new Error(ErrorType.RIGHTCOMMENT, item.lineNumber));
+					errorList.add(new Error(ErrorType.RIGHTCOMMENT, item.lineNumber, code[item.lineNumber - 1]));
 					return;
 				}
 			}
@@ -82,7 +82,7 @@ public class SyntaxCheckADT {
 				if (!ignoredLine.contains(lineCounter))
 					ignoredLine.add(lineCounter);
 				if (stack.isEmpty() || stack.peek().type != Type.PROGRAM) {
-					errorList.add(new Error(ErrorType.PROGRAM, lineCounter));
+					errorList.add(new Error(ErrorType.PROGRAM, lineCounter, codes[i]));
 					return;
 				}
 				stack.pop();
@@ -102,11 +102,11 @@ public class SyntaxCheckADT {
 			while (!stack.isEmpty()) {
 				LineObject item = stack.pop();
 				if (item.type == Type.PROGRAM) {
-					errorList.add(new Error(ErrorType.PROGRAM, item.lineNumber));
+					errorList.add(new Error(ErrorType.PROGRAM, item.lineNumber, code[item.lineNumber - 1]));
 					return;
 				}
 				else if (item.type == Type.END) {
-					errorList.add(new Error(ErrorType.END, item.lineNumber));
+					errorList.add(new Error(ErrorType.END, item.lineNumber, code[item.lineNumber - 1]));
 					return;
 				}
 			}
@@ -118,14 +118,7 @@ public class SyntaxCheckADT {
 		for (int i = 0; i < codes.length; i++) {
 			lineCounter++;
 			String[] lineToken = codes[i].trim().toLowerCase().split(" ");
-//			if (!ignoredLine.contains(lineCounter) && lineToken[0].equals("{")){
-//				ignoredLine.add(lineCounter);
-//				if (stack.isEmpty() || stack.peek().type != Type.LOOP) {
-//					errorList.add(new Error(ErrorType.LOOP, lineCounter));
-//					return;
-//				}
-//				stack.add(new LineObject(Type.LEFTBRAC, lineCounter));
-//			}
+
 			if (!ignoredLine.contains(lineCounter) && lineToken[0].equals("loop")){
 				ignoredLine.add(lineCounter);
 				if (lineToken.length == 3 && lineToken[2].equals("{")) {
@@ -133,18 +126,17 @@ public class SyntaxCheckADT {
 						ignoredLine.add(lineCounter);
 					stack.add(new LineObject(Type.LOOP, lineCounter));
 					stack.add(new LineObject(Type.LEFTBRAC, lineCounter));
-					//programLine.remove(programLine.indexOf(lineCounter));
+
 				}
 				else if (lineToken.length == 2 && lineToken[1].matches("\\d+")) {
 					ignoredLine.add(lineCounter);
 					if (!ignoredLine.contains(lineCounter))
 						ignoredLine.add(lineCounter);
 					stack.add(new LineObject(Type.LOOP, lineCounter));
-					//programLine.remove(programLine.indexOf(lineCounter));
-					//ignoredLine.add(lineCounter);
+
 				}
 				else {
-					errorList.add(new Error(ErrorType.LOOP, lineCounter));
+					errorList.add(new Error(ErrorType.LOOP, lineCounter, codes[i]));
 					return;
 				}
 			}
@@ -152,7 +144,7 @@ public class SyntaxCheckADT {
 				if (!ignoredLine.contains(lineCounter))
 					ignoredLine.add(lineCounter);
 				if (stack.isEmpty() || stack.peek().type != Type.LEFTBRAC) {
-					errorList.add(new Error(ErrorType.RIGHTBRAC, lineCounter));
+					errorList.add(new Error(ErrorType.RIGHTBRAC, lineCounter, codes[i]));
 					return;
 				}
 				stack.pop();
@@ -164,11 +156,11 @@ public class SyntaxCheckADT {
 			while (!stack.isEmpty()) {
 				LineObject item = stack.pop();
 				if (item.type == Type.LEFTBRAC) {
-					errorList.add(new Error(ErrorType.LEFTBRAC, item.lineNumber));
+					errorList.add(new Error(ErrorType.LEFTBRAC, item.lineNumber, code[item.lineNumber - 1]));
 					return;
 				}
 				else if (item.type == Type.RIGHTBRAC) {
-					errorList.add(new Error(ErrorType.RIGHTBRAC, item.lineNumber));
+					errorList.add(new Error(ErrorType.RIGHTBRAC, item.lineNumber, code[item.lineNumber - 1]));
 					return;
 				}
 			}
@@ -180,7 +172,7 @@ public class SyntaxCheckADT {
 			lineCounter++;
 			String line = codes[i].trim().toLowerCase();
 			if (!ignoredLine.contains(lineCounter) && !line.endsWith(";") && line.length() != 0) {
-				errorList.add(new Error(ErrorType.SEMICOLON, lineCounter));
+				errorList.add(new Error(ErrorType.SEMICOLON, lineCounter, codes[i]));
 				return;
 			}
 		}
@@ -196,7 +188,7 @@ public class SyntaxCheckADT {
 			lineCounter++;
 			String line = codes[i].trim().toLowerCase();
 			if (!ignoredLine.contains(lineCounter) && !programLinesExtracted.contains(lineCounter)) {
-				errorList.add(new Error(ErrorType.EXTRASTATEMENT, lineCounter));
+				errorList.add(new Error(ErrorType.EXTRASTATEMENT, lineCounter, codes[i]));
 				return;
 			}
 		}
@@ -227,41 +219,53 @@ public class SyntaxCheckADT {
 		}
 	}
 
-	public void syntaxCheck(){
+	public Boolean syntaxCheck(){
 		commentCheck(code);
 		if (!errorList.isEmpty()){
 			for (Error e: errorList){
-				System.out.println("Error Type is:" + e.errorType + " and the line number is: " + e.lineNumber);
+				System.out.println("Error Type is:" + e.errorType);
+				System.out.println("The code are " + "\"" + e.contents+ "\"" );
+				System.out.println("The line number is: " + e.lineNumber);
 			}
-			return;
+			return false;
 		}
 		programCheck(code);
 		if (!errorList.isEmpty()){
 			for (Error e: errorList){
-				System.out.println("Error Type is:" + e.errorType + " and the line number is: " + e.lineNumber);
+				System.out.println("Error Type is:" + e.errorType);
+				System.out.println("The code are " + "\"" + e.contents+ "\"" );
+				System.out.println("The line number is: " + e.lineNumber);
 			}
-			return;
+			return false;
 		}
 		bracCheck(code);
 		if (!errorList.isEmpty()){
 			for (Error e: errorList){
-				System.out.println("Error Type is:" + e.errorType + " and the line number is: " + e.lineNumber);
+				System.out.println("Error Type is:" + e.errorType);
+				System.out.println("The code are " + "\"" + e.contents+ "\"" );
+				System.out.println("The line number is: " + e.lineNumber);
 			}
-			return;
+			return false;
 		}
 		semiCheck(code);
 		if (!errorList.isEmpty()){
 			for (Error e: errorList){
-				System.out.println("Error Type is:" + e.errorType + " and the line number is: " + e.lineNumber);
+				System.out.println("Error Type is:" + e.errorType);
+				System.out.println("The code are " + "\"" + e.contents+ "\"" );
+				System.out.println("The line number is: " + e.lineNumber);
 			}
-			return;
+			return false;
 		}
 		outSideStatementCheck(code);
 		if (!errorList.isEmpty()){
 			for (Error e: errorList){
-				System.out.println("Error Type is:" + e.errorType + " and the line number is: " + e.lineNumber);
+				System.out.println("Error Type is:" + e.errorType);
+				System.out.println("The code are " + "\"" + e.contents+ "\"" );
+				System.out.println("The line number is: " + e.lineNumber);
 			}
-			return;
+			return false;
 		}
+		programLineProcess();
+		return true;
 	}
 }
