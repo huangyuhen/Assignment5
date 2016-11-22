@@ -1,33 +1,53 @@
+/*****************************************************************************************************
+ * File: TreeADT.java
+ * Course: Data Structures and Algorithms for Engineers
+ * Project: A5
+ * Author: Evil Genius
+ * Versions:
+ *	1.0 November 2016
+ *
+ * Description: This program builds a tree using preorder traversal and execute the calculation by
+ *              traversing the tree using an inorder traversal.
+ *
+ * Parameters: String[] array
+ *
+ * Internal Functions: float caculateTreeUtil(TreeNode node);
+                       Object caculateTree(TreeNode node);
+                       TreeNode constructTreeUtil(String pre[], Index preIndex, int low, int high, int size);
+                       TreeNode constructTree(String pre[], int size);
+                       boolean isFloat(String str);
+                       boolean isInteger(String str).
+ *****************************************************************************************************/
+
 import java.text.*;
-/**
- * Created by rachel on 11/17/16.
- */
+
 public class TreeADT {
 
+    //Initiate class Index to and use it as a global variable.
     private Index index = new Index();
-    /*public static void main(String[] args)
-    {
-        TreeADT tree = new TreeADT();
-        String pre[] = new String[]{"-", "+", "*", "-", "1","2","8","3","1.0"};
-        //String pre[] = new String[]{"+","-","7","8","1.456"};
-        //String pre[] = new String[]{"+", "*", "+","1", "2", "3","4.5"};
-        int size = pre.length;
-        TreeNode root = tree.constructTree(pre, size);
-        System.out.println("Inorder traversal of the constructed tree is ");
-        tree.printInorder(root);
-        tree.caculateTree(root);
-    }*/
 
-    public float caculateTreeUtil(TreeNode node) throws ArithmeticException
+    /*********************************************************************
+     * Function Name:    caculateTreeUtil
+     * Description:      This function execute the calculation by traversing
+     *                   the tree using an inorder traversal.
+     * Input Parameters: TreeNode node
+     * Output:           Float number
+     ***********************************************************************/
+
+    public float caculateTreeUtil(TreeNode node)
     {
+        //Initiate a float to be used
+        float quotient=0;
         if (node.data.equals("*"))
             return caculateTreeUtil(node.left) * caculateTreeUtil(node.right);
 
         else if (node.data.equals("/"))
         {
-            float quotient=caculateTreeUtil(node.left) / caculateTreeUtil(node.right);
-            if(quotient==Float.POSITIVE_INFINITY || quotient==Float.NEGATIVE_INFINITY)
-                throw new ArithmeticException("Divisor cannot be 0");
+            if (node.right.data.equals("0")) {
+                System.out.println("Divisor cannot be zero.");
+                System.exit(0);
+            }
+            quotient = caculateTreeUtil(node.left) / caculateTreeUtil(node.right);
             return quotient;
         }
         else if (node.data.equals("+"))

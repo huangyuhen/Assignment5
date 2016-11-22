@@ -1,3 +1,34 @@
+/*****************************************************************************************************
+ * File: Execution.java
+ * Course: Data Structures and Algorithms for Engineers
+ * Project: A5
+ * Author: Evil Genius
+ * Versions:
+ *	1.0 November 2016
+ *
+ * Description: This program will validate the program line syntax and execute line by line.
+ *
+ * Parameters:
+ * 				HashMap<String, Value> map;
+ * 				ArrayList<ProgramLineObject> programLineObjects;
+ *
+ * Internal Functions:
+ * 					checkLineTokens(ProgramLineObject lineObject)
+ * 					checkStatementValid(ProgramLineObject lineObject)
+ * 					checkStatementValid_print(ProgramLineObject lineObject)
+ * 					checkStatementValid_assign(ProgramLineObject lineObject)
+ * 					checkLoopStartValid(ProgramLineObject lineObject)
+ * 					executeStatementLine(ProgramLineObject executingLine)
+ * 					executeStatementLine_assignWithOperation(ProgramLineObject executingLine)
+ * 					checkStringValidation(ProgramLineObject executingLine)
+ * 					executeStatementLine_print(ProgramLineObject executingLine)
+ * 					executeStatementLine_assign(ProgramLineObject executingLine)
+ * 					executeLoopLine(ProgramLineObject executingLine)
+ * 					isIntFloat(String str)
+ *
+ *****************************************************************************************************/
+
+
 import EnumerationTypes.*;
 import ObjectTypes.ProgramLineObject;
 import ObjectTypes.Value;
@@ -5,61 +36,100 @@ import ObjectTypes.Value;
 import java.util.*;
 
 public class Execution{
-	// stored all value
+	// Hash Table which store all the declared Values
 	final static HashMap<String, Value> map = new HashMap<>();
+
+	// List of ProgramLineObject to be validated and executed
 	ArrayList<ProgramLineObject> programLineObjects;
+
+	/*********************************************************************
+	 * Constructor:  Execution(ArrayList<ProgramLineObject> list)
+	 * Description: This constructor will read ArrayList<ProgramLineObject>.
+	 * Input Parameters: ArrayList<ProgramLineObject>
+	 * Output: void
+	 ***********************************************************************/
 	public Execution(ArrayList<ProgramLineObject> list){
 		programLineObjects = list;
 	}
 
+	/*********************************************************************
+	 * Function Name:  executeLines()
+	 * Description: This method will validate and execute ProgramLineObject line by line.
+	 * Input Parameters: null
+	 * Output: void
+	 ***********************************************************************/
 	public void executeLines(){
+		// declare executionLineObjects by check syntax error first
 		List<ProgramLineObject> executionLineObjects = scanProgramLineToExecutionLine(programLineObjects);
 
+		//current executionIndex (line number)
 		int executionIndex = 0;
 		// all the execution lines are in the executionLineObjects
 		// execute the lines one by one
+		// if the current executionIndex is not in the end of the execution lines
 		while (executionIndex < programLineObjects.size()) {
-			// get the head of the line to execute
+			// get the current line to execute
 			ProgramLineObject executingLine = executionLineObjects.get(executionIndex);
 			switch (executingLine.type) {
+				//if current execution line is in type of STATEMENT
 				case STATEMENT:
 					executeStatementLine(executingLine);
+					// after this line got executed, increased the executionIndex
 					executionIndex++;
 					break;
+				//if current execution line is in type of start of the LOOP
 				case LOOPSTART:
 					executionIndex = executeLoopLine(executingLine);
 					break;
+				//if current execution line is in type of end of the LOOP
 				case LOOPEND:
 					executionIndex = executeLoopLine(executingLine);
 					break;
 				default:
 			}
-			// after this line got executed, remove the head of the line
-			//executionLineObjects.remove(0);
 
 		}
 	}
-	public static List<ProgramLineObject> scanProgramLineToExecutionLine(ArrayList<ProgramLineObject> programLineObjects) {
 
+	/*********************************************************************
+	 * Function Name:  scanProgramLineToExecutionLine(ArrayList<ProgramLineObject> programLineObjects)
+	 * Description: This method will validate list ProgramLineObject line by line.
+	 * 				And return the list of ProgramLineObject as execution line.
+	 * Input Parameters: ArrayList<ProgramLineObject> programLineObjects
+	 * Output: List<ProgramLineObject>
+	 ***********************************************************************/
+	public static List<ProgramLineObject> scanProgramLineToExecutionLine(ArrayList<ProgramLineObject> programLineObjects) {
+		// declare a List of ProgramLineObject storing ProgramLineObject to be executed
 		List<ProgramLineObject> executionLineObjectsList = new ArrayList<>();
+		// iterate the list
 		for (ProgramLineObject lineObject : programLineObjects) {
+			//check current ProgramLineObject syntax error
 			checkLineTokens(lineObject);
-			// checkLoopStartValid(lineObject);
+			//if no error, add into the ProgramLineObject list to be executed
 			executionLineObjectsList.add(lineObject);
 		}
 		return executionLineObjectsList;
 	}
 
-	// return VOID if correct
-	// only stop and exit when error
+	/*********************************************************************
+	 * Function Name:  checkLineTokens(ProgramLineObject lineObject)
+	 * Description: This method will validate ProgramLineObject.
+	 * 				And return void if no error.
+	 * 			    And exit the program if there's an error.
+	 * Input Parameters: ProgramLineObject lineObject
+	 * Output: void
+	 ***********************************************************************/
 	private static void checkLineTokens(ProgramLineObject lineObject) {
 		switch (lineObject.type) {
+			//if current execution line is in type of STATEMENT
 		case STATEMENT:
 			checkStatementValid(lineObject);
 			break;
+			//if current execution line is in type of start of the LOOP
 		case LOOPSTART:
 			checkLoopStartValid(lineObject);
 			break;
+			//if current execution line is in type of end of the LOOP
 		case LOOPEND:
 		default:
 			break;
@@ -67,34 +137,55 @@ public class Execution{
 	}
 
 
-	// return VOID if correct
-	// only stop and exit when error
+	/*********************************************************************
+	 * Function Name:  checkStatementValid(ProgramLineObject lineObject)
+	 * Description: This method will validate list ProgramLineObject.
+	 * 				And return void if no error.
+	 * 			    And exit the program if there's an error.
+	 * Input Parameters: ProgramLineObject lineObject
+	 * Output: void
+	 ***********************************************************************/
 	private static void checkStatementValid(ProgramLineObject lineObject) {
-		// get first token by white space, for scan PRINT statement
+		// get first token by white space, for scan PRINT(CR) statement
 		String[] preTokens = lineObject.contents.split("\\s+");
 		String firstToken = preTokens[0].toLowerCase();
+		//if this statement is in type of print
 		if (firstToken.equals("print") || firstToken.equals("printcr"))
 			checkStatementValid_print(lineObject);
+		//if this statement is in type of assignment
 		else
 			checkStatementValid_assign(lineObject);
 	}
 
+	/*********************************************************************
+	 * Function Name:  checkStatementValid_print(ProgramLineObject lineObject)
+	 * Description: This method will validate ProgramLineObject.
+	 * 				And return void if no error.
+	 * 			    And exit the program if there's an error.
+	 * Input Parameters: ProgramLineObject lineObject
+	 * Output: void
+	 ***********************************************************************/
 	private static void checkStatementValid_print(ProgramLineObject lineObject) {
+		//declare temp values store Line valid or not, errorType and errorLine number
 		boolean validExecutionLine = true;
 		ErrorType errorType = null;
 		int errorLine = 0;
-		
+
+		//trim the String remove the ";"
 		String trimString = lineObject.contents.replace(";", "");
-		
+
+		//count the number of Quotes (")
 		int numberOfQuotes = 0;
 		for (int i = 0; i < trimString.length(); i++) {
 			if (trimString.charAt(i) == '"')
 				numberOfQuotes++;
 		}
-		
-		//print "
+
+		//if there is more than one " e.g. print "
 		if(numberOfQuotes!=0){
+			//print " "
 			if(numberOfQuotes==2){
+				//get the first and second (") index
 				int firstQuoteIndex = trimString.indexOf("\"");
 				int endOfFirstToken = trimString.indexOf(" ");
 
@@ -105,32 +196,38 @@ public class Execution{
 					validExecutionLine = false;
 				}
 			}
-			//" not =2
+			//if number of (") not equal to 2, e.g. print """
 			else{
 				errorType = ErrorType.STATEMENT_ERROR;
 				errorLine = lineObject.lineNumber;
 				validExecutionLine = false;
 			}
 		}
+		//if there is no quote (")
+		//e.g.
 		//print cb
 		//printcr c d
 		//print 1
 		else{
+			// trim the String with white space
 			String[] preTokens = trimString.split("\\s+");
 			char c = preTokens[1].charAt(0);
 
+			//if the string is more than one token
 			//printcr c d
 			if(preTokens.length!=2){
 				errorType = ErrorType.STATEMENT_ERROR;
 				errorLine = lineObject.lineNumber;
 				validExecutionLine = false;
 			}
+			//if the string is NOT a single character
 			//print cb
 			else if(preTokens[1].length()!=1){
 				errorType = ErrorType.STATEMENT_ERROR;
 				errorLine = lineObject.lineNumber;
 				validExecutionLine = false;
 			}
+			//if the string is not a letter
 			//print 1
 			else if (!Character.isLetter(c)){
 				errorType = ErrorType.STATEMENT_ERROR;
@@ -138,24 +235,31 @@ public class Execution{
 				validExecutionLine = false;
 			}
 		}
+		//if it is an error above, exit the system and print the error
 		if (validExecutionLine == false) {
 			System.out.println("Error Type is:" + errorType);
 			System.out.println("The code are " + "\"" + lineObject.contents+ "\"" );
 			System.out.println("The line number is: " + errorLine);
 			System.exit(0);
 		}
-		
 	}
 
-	// return VOID if correct
-	// only stop and exit when error
+	/*********************************************************************
+	 * Function Name:  checkStatementValid_assign(ProgramLineObject lineObject)
+	 * Description: This method will validate ProgramLineObject.
+	 * 				And return void if no error.
+	 * 			    And exit the program if there's an error.
+	 * Input Parameters: ProgramLineObject lineObject
+	 * Output: void
+	 ***********************************************************************/
 	private static void checkStatementValid_assign(ProgramLineObject lineObject) {
+		//declare temp values store Line valid or not, errorType and errorLine number
 		boolean validExecutionLine = true;
 		ErrorType errorType = null;
 		int errorLine = 0;
 
+		//trim the string by removing the white space
 		String trimString = lineObject.contents.replace(" ", "");
-		// System.out.println("After token:  " + trimString);
 
 		// count number of "="
 		int numberOfEqual = 0;
@@ -164,23 +268,33 @@ public class Execution{
 				numberOfEqual++;
 		}
 
+		//if more than one "="
 		if (numberOfEqual != 1) {// a==3
 			errorType = ErrorType.STATEMENT_ERROR;
 			errorLine = lineObject.lineNumber;
 			validExecutionLine = false;
-		} else {
+		}
+		// only one "="
+		else {
+			//tokenlize the string by "=" or ";"
 			String[] tokens = trimString.split("[=;]");
-			if (tokens.length != 2) {// =3 or a= or =
+			//if not a valid assignment form
+			// =3 or a= or =
+			if (tokens.length != 2) {
 				errorType = ErrorType.STATEMENT_INVALID_ASSIGNMENT_ERROR;
 				errorLine = lineObject.lineNumber;
 				validExecutionLine = false;
-			} else {// check both tokens
+			}
+			// check both tokens
+			else {
 				// check first token
 				if (tokens[0].length() != 1) {// aa=1
 					errorType = ErrorType.STATEMENT_INVALID_ASSIGNMENT_ERROR;
 					errorLine = lineObject.lineNumber;
 					validExecutionLine = false;
-				} else {// 1=1
+				}
+				// 1=1
+				else {
 					char c = tokens[0].charAt(0);
 					if (!Character.isLetter(c)) {
 						errorType = ErrorType.STATEMENT_INVALID_ASSIGNMENT_ERROR;
@@ -190,7 +304,8 @@ public class Execution{
 				}
 				// check second token
 				// length is 1
-				if (tokens[1].length() == 1) {// a=?
+				// a=?
+				if (tokens[1].length() == 1) {
 					char c = tokens[1].charAt(0);
 					if ((!Character.isDigit(c)) && (!Character.isLetter(c))) {
 						errorType = ErrorType.STATEMENT_INVALID_ASSIGNMENT_ERROR;
@@ -199,11 +314,12 @@ public class Execution{
 					}
 				}
 				// length is >1
-				else {// a=ab
-
+				// a=ab
+				else {
 					//check comma to go to tree validation.
 					if (tokens[1].contains(","))
 						return;
+					//otherwise, report error
 					if (!isIntFloat(tokens[1])) {
 						errorType = ErrorType.STATEMENT_INVALID_ASSIGNMENT_ERROR;
 						errorLine = lineObject.lineNumber;
@@ -212,6 +328,7 @@ public class Execution{
 				}
 			}
 		}
+		//if it is an error above, exit the system and print the error
 		if (validExecutionLine == false) {
 			System.out.println("Error Type is:" + errorType);
 			System.out.println("The code are " + "\"" + lineObject.contents+ "\"" );
@@ -220,7 +337,16 @@ public class Execution{
 		}
 	}
 
+	/*********************************************************************
+	 * Function Name:  checkLoopStartValid(ProgramLineObject lineObject)
+	 * Description: This method will validate ProgramLineObject.
+	 * 				And return void if no error.
+	 * 			    And exit the program if there's an error.
+	 * Input Parameters: ProgramLineObject lineObject
+	 * Output: void
+	 ***********************************************************************/
 	private static void checkLoopStartValid(ProgramLineObject lineObject) {
+		//declare temp values store Line valid or not, errorType and errorLine number
 		boolean validExecutionLine = true;
 		ErrorType errorType = null;
 		int errorLine = 0;
@@ -251,6 +377,7 @@ public class Execution{
 				}
 			}
 		}
+		//if it is an error above, exit the system and print the error
 		if (!validExecutionLine) {
 			System.out.println("Error Type is:" + errorType);
 			System.out.println("The code are " + "\"" + lineObject.contents+ "\"" );
@@ -260,20 +387,37 @@ public class Execution{
 
 	}
 
+	/*********************************************************************
+	 * Function Name:  executeStatementLine(ProgramLineObject lineObject)
+	 * Description: This method will execute ProgramLineObject.
+	 * 				And return void if no error.
+	 * Input Parameters: ProgramLineObject lineObject
+	 * Output: void
+	 ***********************************************************************/
 	private static void executeStatementLine(ProgramLineObject executingLine) {
 		// get first token by white space, for scan PRINT statement
 		String[] preTokens = executingLine.contents.split("\\s+");
 		String firstToken = preTokens[0].toLowerCase();
+		//if this is statement for PRINT(CR)
 		if (firstToken.equals("print") || firstToken.equals("printcr"))
 			executeStatementLine_print(executingLine);
+		//if this is statement for TREE operation
 		else if(executingLine.contents.contains(",")){
 			checkStringValidation(executingLine);
 			executeStatementLine_assignWithOperation(executingLine);
 		}
+		//if this is statement for common assignment
 		else
 			executeStatementLine_assign(executingLine);
 	}
 
+	/*********************************************************************
+	 * Function Name:  executeStatementLine_assignWithOperation(ProgramLineObject lineObject)
+	 * Description: This method will execute ProgramLineObject.
+	 * 				And return void if no error.
+	 * Input Parameters: ProgramLineObject lineObject
+	 * Output: void
+	 ***********************************************************************/
 	private static void executeStatementLine_assignWithOperation(ProgramLineObject executingLine) {
 		String commandLine = executingLine.contents;
 		String trimString = commandLine.replace(" ", "");
@@ -332,6 +476,13 @@ public class Execution{
 		}
 	}
 
+	/*********************************************************************
+	 * Function Name:  checkStringValidation(ProgramLineObject lineObject)
+	 * Description: This method will validate ProgramLineObject for TREE operation.
+	 * 				And return void if no error.
+	 * Input Parameters: ProgramLineObject lineObject
+	 * Output: void
+	 ***********************************************************************/
 	private static void checkStringValidation(ProgramLineObject executingLine){
 		boolean validExecutionLine = true;
 		ErrorType errorType = null;
@@ -368,26 +519,42 @@ public class Execution{
 			System.exit(0);
 		}
 	}
-	private static void executeStatementLine_print(ProgramLineObject executingLine) {					
+
+	/*********************************************************************
+	 * Function Name:  executeStatementLine_print(ProgramLineObject lineObject)
+	 * Description: This method will execute ProgramLineObject for PRINT operation.
+	 * 				And exit the program when error.
+	 * 				And return void if no error.
+	 * Input Parameters: ProgramLineObject lineObject
+	 * Output: void
+	 ***********************************************************************/
+	private static void executeStatementLine_print(ProgramLineObject executingLine) {
+		//Remove ";" from the string
 		String trimString = executingLine.contents.replace(";", "");
-		
+
+		//get the tokens to be print
 		String[] preTokens = trimString.split("\\s+");
 		String firstToken = preTokens[0].toLowerCase();
-		
+
+		//get the first/second token index
 		int firstQuote = trimString.indexOf("\"");
 		int secondQuote = trimString.indexOf("\"", trimString.indexOf("\"")+1);
+
 		//print "x";
 		if(firstQuote>0){
+			//if PRINT
 			if(firstToken.equals("print"))
 				System.out.print(trimString.substring(firstQuote+1, secondQuote));
+			//if PRINTCR
 			else
 				System.out.println(trimString.substring(firstQuote+1, secondQuote));
 		}
 		//print a;
 		else{
-			//a not declared
+			//get the variable
 			String secondToken = preTokens[1].toLowerCase();
-			
+
+			//if a not declared
 			if (!map.containsKey(secondToken)) {
 				System.out.println("Error Type is:" + ErrorType.UNDECLARED_ERROR);
 				System.out.println("The code are " + "\"" + executingLine.contents+ "\"" );
@@ -395,19 +562,28 @@ public class Execution{
 				System.exit(0);
 			}
 			else{
+				//if PRINT
 				if(firstToken.equals("print"))
 					map.get(secondToken).printValue();
+				//if PRINTCR
 				else{
 					map.get(secondToken).printValue();
 					System.out.println();
 				}
 			}
 		}
-
 	}
-		
-		
-	private static void executeStatementLine_assign(ProgramLineObject executingLine) {	
+
+	/*********************************************************************
+	 * Function Name:  executeStatementLine_assign(ProgramLineObject lineObject)
+	 * Description: This method will execute ProgramLineObject for ASSIGNMENT operation.
+	 * 				And exit the program when error.
+	 * 				And return void if no error.
+	 * Input Parameters: ProgramLineObject lineObject
+	 * Output: void
+	 ***********************************************************************/
+	private static void executeStatementLine_assign(ProgramLineObject executingLine) {
+		//trim and split the line contents by = and ;
 		String commandLine = executingLine.contents;
 		String trimString = commandLine.replace(" ", "");
 		String[] tokens = trimString.split("[=;]");
@@ -425,7 +601,7 @@ public class Execution{
 			}
 			// b declared
 			else {
-				// a not declared before
+				// a not declared before, just assign to it
 				if (!map.containsKey(leftValue))
 					map.put(leftValue, map.get(rightValue));
 				// a declared before
@@ -435,7 +611,7 @@ public class Execution{
 		}
 		// a = 3;
 		else {
-			// a not declared before
+			// a not declared before, just assign to it
 			if (!map.containsKey(leftValue))
 				map.put(leftValue, new Value(rightValue));
 			// a declared before
@@ -444,6 +620,12 @@ public class Execution{
 		}
 	}
 
+	/*********************************************************************
+	 * Function Name:  executeLoopLine(ProgramLineObject lineObject)
+	 * Description: This method will execute ProgramLineObject for LOOP operation.
+	 * Input Parameters: ProgramLineObject lineObject
+	 * Output: int
+	 ***********************************************************************/
 	private int executeLoopLine(ProgramLineObject executingLine) {
 		if (executingLine.type == ProgramLineType.LOOPSTART){
 			String[] tokenString = executingLine.contents.split(" ");
@@ -507,6 +689,13 @@ public class Execution{
 		return -1;
 	}
 
+	/*********************************************************************
+	 * Function Name:  isIntFloat(String str)
+	 * Description: This method will check whether this String's content is
+	 * 				in type of integer or float
+	 * Input Parameters: String str
+	 * Output: boolean
+	 ***********************************************************************/
 	private static boolean isIntFloat(String str) {
 		boolean status = true;
 		for (int i = 0; i < str.length(); i++) {
