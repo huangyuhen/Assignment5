@@ -1,3 +1,26 @@
+/*****************************************************************************************************
+ * File: Execution.java
+ * Course: Data Structures and Algorithms for Engineers
+ * Project: A5
+ * Author: Evil Genius
+ * Versions:
+ *	1.0 November 2016
+ *
+ * Description: This program will validate the program line syntax and execute line by line.
+ *
+ * Parameters:
+ * 				HashMap<String, Value> map;
+ * 				ArrayList<ProgramLineObject> programLineObjects;
+ *
+ * Internal Functions:
+ * Execution(ArrayList<ProgramLineObject> list)
+ * executeLines()
+ * scanProgramLineToExecutionLine(ArrayList<ProgramLineObject> programLineObjects)
+ *
+ *
+ *****************************************************************************************************/
+
+
 import EnumerationTypes.*;
 import ObjectTypes.ProgramLineObject;
 import ObjectTypes.Value;
@@ -8,6 +31,7 @@ public class Execution{
 	// stored all value
 	final static HashMap<String, Value> map = new HashMap<>();
 	ArrayList<ProgramLineObject> programLineObjects;
+
 	public Execution(ArrayList<ProgramLineObject> list){
 		programLineObjects = list;
 	}
