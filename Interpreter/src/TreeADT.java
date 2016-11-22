@@ -33,7 +33,7 @@ public class TreeADT {
      * Output:           Float
     ***********************************************************************/
 
-    public float caculateTreeUtil(TreeNode node)
+    public float caculateTreeUtil(TreeNode node) throws ArithmeticException
     {
         //If the operator is *, then we executing * calculation.
         if (node.data.equals("*"))
@@ -42,9 +42,13 @@ public class TreeADT {
         else if (node.data.equals("/"))
         {
             //If the divisor is 0, the program exits with error message.
-            if (node.right.data.equals("0")) {
-                System.out.println("Error: Divisor cannot be zero.");
-                System.exit(0);
+            if (node.right.data.equals("0"))
+            throw new ArithmeticException();
+
+            {
+
+                //System.out.println("Error: Divisor cannot be zero.");
+                //System.exit(0);
             }
             //Otherwise, we executing the / calculation.
             float quotient = caculateTreeUtil(node.left) / caculateTreeUtil(node.right);
@@ -70,8 +74,18 @@ public class TreeADT {
 
     public Object caculateTree(TreeNode node)
     {
+        float caculationResult;
         //Call caculateTreeUtil function to get the float result.
-        float caculationResult=caculateTreeUtil(node);
+        try
+        {
+            caculationResult=caculateTreeUtil(node);
+
+        }
+        catch(ArithmeticException ex)
+        {
+            return null;
+        }
+        //float caculationResult=caculateTreeUtil(node);
         int toInt=0;
         //To check if the result can be an integer, if yes, then return int type.
         if((int)caculationResult==caculationResult)
