@@ -43,15 +43,11 @@ public class TreeADT {
 
         else if (node.data.equals("/"))
         {
-            try
-            {
-                 quotient = caculateTreeUtil(node.left) / caculateTreeUtil(node.right);
-            }
-            catch(NumberFormatException ex)
-            {
+            if (node.right.data.equals("0")) {
                 System.out.println("Divisor cannot be zero.");
                 System.exit(0);
             }
+            quotient = caculateTreeUtil(node.left) / caculateTreeUtil(node.right);
             return quotient;
         }
         else if (node.data.equals("+"))
