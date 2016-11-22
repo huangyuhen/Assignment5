@@ -6,7 +6,7 @@ import java.util.*;
 public class ConvertString{
 
 
-    //Main function called by caller to convert string to Array.
+    //Main function called by caller to convert a String to a String Array.
     public static String[] StringToArray(String input)
     {
         if(input==null || input.isEmpty())
