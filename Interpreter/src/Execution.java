@@ -38,12 +38,6 @@ public class Execution{
 			//executionLineObjects.remove(0);
 
 		}
-
-//		for (String s : map.keySet()) {
-//			System.out.print(s);
-//			System.out.print("=");
-//			map.get(s).getValue();
-//		}
 	}
 	public static List<ProgramLineObject> scanProgramLineToExecutionLine(ArrayList<ProgramLineObject> programLineObjects) {
 
@@ -145,8 +139,9 @@ public class Execution{
 			}
 		}
 		if (validExecutionLine == false) {
-			System.out.print(errorType);
-			System.out.println(" line:" + errorLine);
+			System.out.println("Error Type is:" + errorType);
+			System.out.println("The code are " + "\"" + lineObject.contents+ "\"" );
+			System.out.println("The line number is: " + errorLine);
 			System.exit(0);
 		}
 		
@@ -159,10 +154,6 @@ public class Execution{
 		ErrorType errorType = null;
 		int errorLine = 0;
 
-		// System.out.print(lineObject.contents + " ");
-		// System.out.print(lineObject.lineNumber + " ");
-		// System.out.println(lineObject.type);
-		//
 		String trimString = lineObject.contents.replace(" ", "");
 		// System.out.println("After token:  " + trimString);
 
@@ -222,8 +213,9 @@ public class Execution{
 			}
 		}
 		if (validExecutionLine == false) {
-			System.out.print(errorType);
-			System.out.println(" line:" + errorLine);
+			System.out.println("Error Type is:" + errorType);
+			System.out.println("The code are " + "\"" + lineObject.contents+ "\"" );
+			System.out.println("The line number is: " + errorLine);
 			System.exit(0);
 		}
 	}
@@ -260,8 +252,9 @@ public class Execution{
 			}
 		}
 		if (!validExecutionLine) {
-			System.out.print(errorType);
-			System.out.println(" line:" + errorLine);
+			System.out.println("Error Type is:" + errorType);
+			System.out.println("The code are " + "\"" + lineObject.contents+ "\"" );
+			System.out.println("The line number is: " + errorLine);
 			System.exit(0);
 		}
 
@@ -369,8 +362,9 @@ public class Execution{
 			}
 		}
 		if (!validExecutionLine) {
-			System.out.print(errorType);
-			System.out.println(" line:" + errorLine);
+			System.out.println("Error Type is:" + errorType);
+			System.out.println("The code are " + "\"" + executingLine.contents+ "\"" );
+			System.out.println("The line number is: " + errorLine);
 			System.exit(0);
 		}
 	}
@@ -395,8 +389,9 @@ public class Execution{
 			String secondToken = preTokens[1].toLowerCase();
 			
 			if (!map.containsKey(secondToken)) {
-				System.out.print(ErrorType.UNDECLARED_ERROR);
-				System.out.println(" line:" + executingLine.lineNumber);
+				System.out.println("Error Type is:" + ErrorType.UNDECLARED_ERROR);
+				System.out.println("The code are " + "\"" + executingLine.contents+ "\"" );
+				System.out.println("The line number is: " + executingLine.lineNumber);
 				System.exit(0);
 			}
 			else{
@@ -527,16 +522,4 @@ public class Execution{
 	}
 
 }
-
-//class ProgramLineObject {
-//	ProgramLineType type;
-//	int lineNumber;
-//	String contents;
-//
-//	public ProgramLineObject(ProgramLineType type, int lineNumber, String contents) {
-//		this.type = type;
-//		this.lineNumber = lineNumber;
-//		this.contents = contents;
-//	}
-//}
 
