@@ -6,16 +6,15 @@
  * Versions:
  *	1.0 November 2016
  *
- * Description: This program builds a tree using preorder traversal and execute the calculation you
- *              traverse the tree using an inorder traversal.
+ * Description: This program builds a tree using preorder traversal and execute the calculation by
+ *              traversing the tree using an inorder traversal.
  *
  * Parameters: String[] array
  *
  * Internal Functions: float caculateTreeUtil(TreeNode node);
                        Object caculateTree(TreeNode node);
                        TreeNode constructTreeUtil(String pre[], Index preIndex, int low, int high, int size);
-                       boolean ifCorrectOperatorsAndNumbers(String []array);
-                       boolean ifOperational(String []array);
+                       TreeNode constructTree(String pre[], int size);
                        boolean isFloat(String str);
                        boolean isInteger(String str).
  *****************************************************************************************************/
@@ -24,10 +23,20 @@ import java.text.*;
 
 public class TreeADT {
 
+    //Initiate class Index to and use it as a global variable.
     private Index index = new Index();
+
+    /*********************************************************************
+     * Function Name:    caculateTreeUtil
+     * Description:      This function execute the calculation by traversing
+     *                   the tree using an inorder traversal.
+     * Input Parameters: TreeNode node
+     * Output:           Float number
+     ***********************************************************************/
 
     public float caculateTreeUtil(TreeNode node)
     {
+        //Initiate a float to be used
         float quotient=0;
         if (node.data.equals("*"))
             return caculateTreeUtil(node.left) * caculateTreeUtil(node.right);
@@ -38,7 +47,7 @@ public class TreeADT {
             {
                  quotient = caculateTreeUtil(node.left) / caculateTreeUtil(node.right);
             }
-            catch(ArithmeticException ex)
+            catch(NumberFormatException ex)
             {
                 System.out.println("Divisor cannot be zero.");
                 System.exit(0);
