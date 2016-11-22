@@ -152,12 +152,24 @@ public class ConvertString{
         return true;
     }
 
+    /*********************************************************************
+     * Function Name:    ifOperational
+     * Description:      This function determines if the string array meets
+     *                   the standard that the number of operators equals to
+     *                   the number of numbers minus one.
+     * Input Parameters: String []array
+     * Output:           boolean
+     ***********************************************************************/
+
     private static boolean ifOperational(String []array)
     {
         int count=0;
         int length=array.length;
+        //We call ifCorrectOperatorsAndNumbers() function to first check if the operator and number types are expected.
+        //If yes, we return true. Otherwise, we return false.
         if(ifCorrectOperatorsAndNumbers(array))
         {
+            //Count the number of Integer and Float types in the string array.
             for (int i = 0; i < length; i++) {
                 if (!isFloat(array[i]) && !isInteger(array[i]))
                     count++;
@@ -169,37 +181,45 @@ public class ConvertString{
         return false;
     }
 
+    /*********************************************************************
+     * Function Name:    isFloat
+     * Description:      This function determines if the string can be converted
+     *                   to a float number.
+     * Input Parameters: String str
+     * Output:           boolean
+     ***********************************************************************/
+
     private static boolean isFloat(String str) {
+        //We add try catch logic to make sure that no error pops out if we get NumberFormatException when trying to parse
+        //the string to a float number.
         try {
             Float.parseFloat(str);
+            //Return true when the string can be converted to a float number.
             return true;
         } catch (NumberFormatException e) {
+            //If the string cannot be converted to a float number, we return false.
             return false;
         }
     }
+
+    /*********************************************************************
+     * Function Name:    isInteger
+     * Description:      This function determines if the string can be converted
+     *                   to an integer.
+     * Input Parameters: String str
+     * Output:           boolean
+     ***********************************************************************/
 
     private static boolean isInteger(String str) {
+        //We add try catch logic to make sure that no error pops out if we get NumberFormatException when trying to parse
+        //the string to an integer.
         try {
             Integer.parseInt(str);
+            //Return true when the string can be converted to an integer.
             return true;
         } catch (NumberFormatException e) {
+            //If the string cannot be converted to an integer, we return false.
             return false;
         }
     }
-
-   /* public static void main(String[] args)
-    {
-        ConvertString check=new ConvertString();
-        String input= "*, 3, -";
-        String []array=check.revertToArray(input);
-        for(String s:array)
-        System.out.print(s);
-        boolean order=check.ifCorrectOrder(array);
-        System.out.println("If correct order:"+order);
-        boolean re=check.ifCorrectOperatorsAndNumbers(array);
-        System.out.println("If correct operator and number:"+re);
-        boolean operational=check.ifOperational(array);
-        System.out.println("If operational:"+operational);
-
-    }*/
 }
