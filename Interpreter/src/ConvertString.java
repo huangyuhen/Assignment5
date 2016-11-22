@@ -1,3 +1,25 @@
+/*****************************************************************************************************
+* File: ConvertString.java
+* Course: Data Structures and Algorithms for Engineers
+* Project: A5
+* Author: Evil Genius
+* Versions:
+*	1.0 November 2016
+*
+* Description: This program converts a String to a String Array, and handles errors which are identified from the given String. 
+*
+* Parameters: String input
+*
+* Internal Functions: String[] StringToArray(String input);
+                      String[] revertToArray(String input);
+                      boolean ifCorrectOrder(String []array);
+                      boolean ifCorrectOperatorsAndNumbers(String []array);
+                      boolean ifOperational(String []array);
+                      boolean isFloat(String str);
+                      boolean isInteger(String str).
+*****************************************************************************************************/
+
+
 import java.util.Iterator;
 import java.util.*;
 /**
