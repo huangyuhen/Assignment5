@@ -34,8 +34,8 @@ public class Value {
     /*********************************************************************
      * Constructor:  Value(String input)
      * Description: This constructor will read String as an input to declare.
-     * Parameter List: String input
-     * Return Type: void
+     * Input Parameters: String input
+     * Output: void
      ***********************************************************************/
     public Value(String input) {
         //if the input is a float
@@ -53,37 +53,53 @@ public class Value {
     }
 
     /*********************************************************************
-     * Constructor:  setValue(String input)
+     * Function Name:  setValue(String input)
      * Description: This method will set/overwrite the Value object.
-     * Parameter List: String input
-     * Return Type: void
+     * Input Parameters: String input
+     * Output: void
      ***********************************************************************/
     public void setValue(String input) {
         //if the input is a float
         if (input.contains(".")) {
+            //convert and define the input String into float type value
             this.fValue = Float.parseFloat(input);
             this.type = ValueType.FloatType;
         }
         //if the input is an integer
         else {
+            //convert and define the input String into int type value
             this.iValue = Integer.parseInt(input);
             this.type = ValueType.IntegerType;
         }
     }
 
+    /*********************************************************************
+     * Function Name:  getValue(String input)
+     * Description: This method get Value object.
+     * Input Parameters: String input
+     * Output: String
+     ***********************************************************************/
     public String getValue() {
-        String valueString ="";
+        String valueString ="";//define a empty String type for return
+        //if the Value is in type integer
         if (this.type == ValueType.IntegerType)
             valueString=Integer.toString(this.iValue);
-        else
+        else //if the Value is in type float
             valueString=Float.toString(this.fValue);
         return valueString;
     }
 
+    /*********************************************************************
+     * Function Name:  printValue(String input)
+     * Description: This method print Value object.
+     * Input Parameters: null
+     * Output: void
+     ***********************************************************************/
     public void printValue() {
+        //if the Value is in type integer
         if (this.type == ValueType.IntegerType)
             System.out.print(this.iValue);
-        else
+        else //if the Value is in type float
             System.out.print(this.fValue);
     }
 
