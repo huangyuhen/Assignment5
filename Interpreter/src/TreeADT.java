@@ -41,15 +41,10 @@ public class TreeADT {
         //If the operator is /, then we executing / calculation.
         else if (node.data.equals("/"))
         {
-            //If the divisor is 0, the program exits with error message.
+            //If the divisor is 0, the program throw ArithmeticException.
             if (node.right.data.equals("0"))
-            throw new ArithmeticException();
+                throw new ArithmeticException();
 
-            {
-
-                //System.out.println("Error: Divisor cannot be zero.");
-                //System.exit(0);
-            }
             //Otherwise, we executing the / calculation.
             float quotient = caculateTreeUtil(node.left) / caculateTreeUtil(node.right);
             return quotient;
@@ -79,13 +74,13 @@ public class TreeADT {
         try
         {
             caculationResult=caculateTreeUtil(node);
-
         }
+        //return null if an ArithmeticException is caught
         catch(ArithmeticException ex)
         {
             return null;
         }
-        //float caculationResult=caculateTreeUtil(node);
+
         int toInt=0;
         //To check if the result can be an integer, if yes, then return int type.
         if((int)caculationResult==caculationResult)

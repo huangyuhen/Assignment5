@@ -468,6 +468,15 @@ public class Execution{
 			TreeADT newTree = new TreeADT();
 			TreeNode root = newTree.constructTree(convertedVersion, convertedVersion.length);
 			Object result = newTree.caculateTree(root);
+
+			// if TreeCalculation got devision is 0
+			if(result==null){
+				System.out.println("Error Type is:" + ErrorType.STATEMENT_ERROR);
+				System.out.println("The code are " + "\"" + executingLine.contents+ "\"" );
+				System.out.println("The line number is: " + executingLine.lineNumber);
+				System.exit(0);
+			}
+
 			if (!map.containsKey(tokens[0])) {
 				map.put(tokens[0], new Value(result.toString()));
 			}
@@ -692,7 +701,7 @@ public class Execution{
 	/*********************************************************************
 	 * Function Name:  isIntFloat(String str)
 	 * Description: This method will check whether this String's content is
-	 * 				in type of integer or float
+	 * 				in type of inte
 	 * Input Parameters: String str
 	 * Output: boolean
 	 ***********************************************************************/
