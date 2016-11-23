@@ -9,7 +9,14 @@
  * Description: This java file is the main class for VSA program interpreter
  *
  *
- *
+ * How to use the class:
+ *                  Open terminal in your laptop
+ *                  cd to the directory that you have this java file
+ *                  Type in terminal:
+ *                          javac VSA.java
+ *                  Type in terminal:
+ *                          java VSA [file path]
+ *                  Notice that the file path should be the program you will execute.
  *
  Public Functions:   String readFile();
                      void executionOfProgram(String[] args);
