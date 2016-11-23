@@ -123,5 +123,8 @@ public class VSA {
         //If the file path is passed check, then we are executing the program
         if (filePath != null)
             executionOfProgram(filePath);
+        else{
+            System.out.println("Invalid file path");
+        }
     }
 }
