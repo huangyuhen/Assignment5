@@ -30,6 +30,7 @@
 
 
 import EnumerationTypes.*;
+import ObjectTypes.Error;
 import ObjectTypes.ProgramLineObject;
 import ObjectTypes.Value;
 
@@ -98,7 +99,8 @@ public class Execution{
 	 * Input Parameters: ArrayList<ProgramLineObject> programLineObjects
 	 * Output: List<ProgramLineObject>
 	 ***********************************************************************/
-	public static List<ProgramLineObject> scanProgramLineToExecutionLine(ArrayList<ProgramLineObject> programLineObjects) {
+	public static List<ProgramLineObject> scanProgramLineToExecutionLine(
+			ArrayList<ProgramLineObject> programLineObjects) {
 		// declare a List of ProgramLineObject storing ProgramLineObject to be executed
 		List<ProgramLineObject> executionLineObjectsList = new ArrayList<>();
 		// iterate the list
@@ -352,23 +354,33 @@ public class Execution{
 		int errorLine = 0;
 
 		String[] tokenString = lineObject.contents.split(" ");
+
+		//The only permitted loop statement is: loop X {
 		if (tokenString.length != 3) {
 			errorType = ErrorType.LOOP;
 			errorLine = lineObject.lineNumber;
 			validExecutionLine = false;
 		} else {
+
+			//If the second token in loop is number
 			if (tokenString[1].matches("-?\\d+(\\.\\d+)?")) {
+
+				//Float number are not permitted for number of loops
 				if (tokenString[1].contains(".")) {
 					errorType = ErrorType.FLOAT_NUMBER;
 					errorLine = lineObject.lineNumber;
 					validExecutionLine = false;
 				}
 			} else {
+
+				//If the variable name is more than one character, this is not permitted
 				if (tokenString[1].length() != 1) {
 					errorType = ErrorType.VARIABLE_NAME;
 					errorLine = lineObject.lineNumber;
 					validExecutionLine = false;
 				} else {
+
+					//If the varibale name is not between letter a-z, this is not permitted
 					if (!tokenString[1].matches(".*[a-z].*")) {
 						errorType = ErrorType.INVALID_CHAR;
 						errorLine = lineObject.lineNumber;
@@ -419,22 +431,32 @@ public class Execution{
 	 * Output: void
 	 ***********************************************************************/
 	private static void executeStatementLine_assignWithOperation(ProgramLineObject executingLine) {
+
+		//preprocess the execution line contents
 		String commandLine = executingLine.contents;
 		String trimString = commandLine.replace(" ", "");
 		String[] tokens = trimString.split("[=;]");
 		String[] calculationTokens = tokens[1].split(",");
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0;i<calculationTokens.length - 1;i++){
+
+			//If we are dealing with character
 			if (!calculationTokens[i].matches("-?\\d+(\\.\\d+)?")) {
-				if (calculationTokens[i].equals("+") || calculationTokens[i].equals("-") || calculationTokens[i].equals("*") || calculationTokens[i].equals("/")) {
+
+				//If we are dealing with logic operater, we continue
+				if (calculationTokens[i].equals("+") || calculationTokens[i].equals("-") ||
+						calculationTokens[i].equals("*") || calculationTokens[i].equals("/")) {
 					sb.append(calculationTokens[i]).append(",");
 					continue;
 				}
 				else{
+					//If we are dealing with a Integer type, we get variable from map
 					if (map.get(calculationTokens[i]).type == ValueType.IntegerType){
 						sb.append(map.get(calculationTokens[i]).iValue).append(",");
 					}
 					else{
+
+						//Else we get float value from map.
 						sb.append(map.get(calculationTokens[i]).fValue).append(",");
 					}
 				}
@@ -444,11 +466,15 @@ public class Execution{
 			}
 		}
 		int lastIndex = calculationTokens.length - 1;
+
+		//This block is only for handling the last charater in the operation string
 		if (!calculationTokens[lastIndex].matches("-?\\d+(\\.\\d+)?")) {
+			//If we are dealing with logic operater, we continue
 			if (calculationTokens[lastIndex].equals("+") || calculationTokens[lastIndex].equals("-") ||
 					calculationTokens[lastIndex].equals("*") || calculationTokens[lastIndex].equals("/")) {
 				sb.append(calculationTokens[lastIndex]);
 			} else {
+				//If we are dealing with a Integer type, we get variable from map
 				if (map.get(calculationTokens[lastIndex]).type == ValueType.IntegerType) {
 					sb.append(map.get(calculationTokens[lastIndex]).iValue);
 				} else {
@@ -459,14 +485,19 @@ public class Execution{
 		else {
 			sb.append(calculationTokens[lastIndex]);
 		}
-		//System.out.println(sb.toString());
+
+
 		String[] convertedVersion = ConvertString.StringToArray(sb.toString());
+		//If there is no contents on the other side of = operation, we exit the program
 		if (convertedVersion == null){
 			System.exit(0);
 		}
 		else {
 			TreeADT newTree = new TreeADT();
+			//If the calculation is valid, we construct a tree for the calculation method
 			TreeNode root = newTree.constructTree(convertedVersion, convertedVersion.length);
+
+			//Now we have a result  from calculation method so that we can store value to our hash map
 			Object result = newTree.caculateTree(root);
 			if (!map.containsKey(tokens[0])) {
 				map.put(tokens[0], new Value(result.toString()));
@@ -484,6 +515,8 @@ public class Execution{
 	 * Output: void
 	 ***********************************************************************/
 	private static void checkStringValidation(ProgramLineObject executingLine){
+
+		//program contents partioning
 		boolean validExecutionLine = true;
 		ErrorType errorType = null;
 		int errorLine = 0;
@@ -491,8 +524,11 @@ public class Execution{
 		String[] tokens = trimString.split("[=;]");
 		String[] calculationTokens = tokens[1].split(",");
 		for (int i = 0; i < calculationTokens.length;i++) {
-			//System.out.println(calculationTokens[i]);
+
+			//If we are not dealing with number, we need to filter out error input
 			if (!calculationTokens[i].matches("-?\\d+(\\.\\d+)?")) {
+
+				//If the token is more than 1 character, we have a invalid execution line
 				if (calculationTokens[i].length() != 1){
 					errorType = ErrorType.VARIABLE_NAME;
 					errorLine = executingLine.lineNumber;
@@ -500,9 +536,14 @@ public class Execution{
 					break;
 				}
 				else{
-					if (calculationTokens[i].equals("+") || calculationTokens[i].equals("-") || calculationTokens[i].equals("*") || calculationTokens[i].equals("/")){
+
+					//If it is logic operater, the let it go through
+					if (calculationTokens[i].equals("+") || calculationTokens[i].equals("-")
+							|| calculationTokens[i].equals("*") || calculationTokens[i].equals("/")){
 						continue;
 					}
+
+					//If the variable is not in the map, we are encountering a undefined variable error
 					if (map.get(calculationTokens[i]) == null){
 						errorType = ErrorType.UNDECLARED_ERROR;
 						errorLine = executingLine.lineNumber;
@@ -512,6 +553,8 @@ public class Execution{
 				}
 			}
 		}
+
+		//Print out error information if there is any error.
 		if (!validExecutionLine) {
 			System.out.println("Error Type is:" + errorType);
 			System.out.println("The code are " + "\"" + executingLine.contents+ "\"" );
@@ -627,65 +670,131 @@ public class Execution{
 	 * Output: int
 	 ***********************************************************************/
 	private int executeLoopLine(ProgramLineObject executingLine) {
+
+		//If we are dealing with loop program line
 		if (executingLine.type == ProgramLineType.LOOPSTART){
 			String[] tokenString = executingLine.contents.split(" ");
+
+			//If the token is number
 			if (tokenString[1].matches("-?\\d+(\\.\\d+)?")){
+
+				//Since when we create loopObject, we didn't assign any number of loop execution to the object
 				if (executingLine.loopObject.originalNumOfExcutionInNum == -1){
+
+					//Now we parse the string to actual integer
 					executingLine.loopObject.originalNumOfExcutionInNum = Integer.parseInt(tokenString[1]);
+
+					//Decrementing the number of execution for the loop
 					executingLine.loopObject.numOfExcutionInNum = Integer.parseInt(tokenString[1]) - 1;
+
+					//We return the index of the next statement that should be exectuted in the program line list
 					return executingLine.loopObject.startIndex + 1;
 				}
 				else if (executingLine.loopObject.numOfExcutionInNum > 0) {
+					//If the number is valid, we then go ahead return the index of next execution statement
 					executingLine.loopObject.numOfExcutionInNum--;
 					return executingLine.loopObject.startIndex + 1;
 				}
 				else{
-					if (programLineObjects.get(executingLine.loopObject.startIndex).loopObject.previousLoops.size() > 0){
-						if (programLineObjects.get(programLineObjects.get(executingLine.loopObject.startIndex).loopObject.previousLoops.get(0)).loopObject.numOfExcutionInNum > 0) {
-							executingLine.loopObject.numOfExcutionInNum = executingLine.loopObject.originalNumOfExcutionInNum;
+
+					//If there the current loop is inside of an larger loop
+					if (programLineObjects.get(executingLine.loopObject.startIndex).
+							loopObject.previousLoops.size() > 0){
+
+						//As long as we have any outside loop that has not finished, we should restore the number
+						//of execution of current loop
+						if (programLineObjects.get(programLineObjects.get(
+								executingLine.loopObject.startIndex).loopObject.
+								previousLoops.get(0)).loopObject.numOfExcutionInNum > 0) {
+
+							//restoring the number of execution for current loop
+							executingLine.loopObject.numOfExcutionInNum =
+									executingLine.loopObject.originalNumOfExcutionInNum;
 							return executingLine.loopObject.endIndex + 1;
 						}
 						else{
-							programLineObjects.get(executingLine.loopObject.startIndex).loopObject.previousLoops.remove(0);
-							executingLine.loopObject.numOfExcutionInNum = executingLine.loopObject.originalNumOfExcutionInNum;
+							//We are done with the parent loop, so we should remove it from the previous loop list
+							programLineObjects.get(executingLine.loopObject.startIndex).
+									loopObject.previousLoops.remove(0);
+
+							//restoring the number of execution
+							executingLine.loopObject.numOfExcutionInNum =
+									executingLine.loopObject.originalNumOfExcutionInNum;
 							return executingLine.loopObject.endIndex + 1;
 						}
 					}
 					return executingLine.loopObject.endIndex + 1;
 				}
 			}
+
+			//This the case of dealing with variable name
 			else{
+
+				//If there is no parsing before, we need to parse the variable to number
 				if (executingLine.loopObject.originalNumOfExcutionInNum == -1) {
+					if (map.get(tokenString[1]) == null){
+						System.out.println("Error Type is:" + ErrorType.VARIABLE_NAME);
+						System.out.println("The code are " + "\"" + executingLine.contents+ "\"" );
+						System.out.println("The line number is: " + executingLine.lineNumber);
+						System.exit(0);
+					}
 					if (map.get(tokenString[1]).type == ValueType.IntegerType) {
+
+						//Getting the variable value from the map
 						executingLine.loopObject.originalNumOfExcutionInNum = map.get(tokenString[1]).iValue;
+
+						//Decrement the number of execution
 						executingLine.loopObject.numOfExcutionInNum = map.get(tokenString[1]).iValue - 1;
 						return executingLine.loopObject.startIndex + 1;
 					}
 				}
+
+				//If the number of execution has been parsed before, we decrement the execution times.
 				else if (executingLine.loopObject.numOfExcutionInNum > 0) {
 					executingLine.loopObject.numOfExcutionInNum--;
 					return executingLine.loopObject.startIndex + 1;
 				}
 				else{
-					if (programLineObjects.get(executingLine.loopObject.startIndex).loopObject.previousLoops.size() > 0){
-						if (programLineObjects.get(programLineObjects.get(executingLine.loopObject.startIndex).loopObject.previousLoops.get(0)).loopObject.numOfExcutionInNum > 0) {
-							executingLine.loopObject.numOfExcutionInNum = executingLine.loopObject.originalNumOfExcutionInNum;
+
+					//If there the current loop is inside of an larger loop
+					if (programLineObjects.get(
+							executingLine.loopObject.startIndex).loopObject.previousLoops.size() > 0){
+
+						//As long as we have any outside loop that has not finished, we should restore the number
+						//of execution of current loop
+						if (programLineObjects.get(
+								programLineObjects.get(
+										executingLine.loopObject.startIndex).loopObject.previousLoops.
+										get(0)).loopObject.numOfExcutionInNum > 0) {
+
+							//Restoring the number of execution
+							executingLine.loopObject.numOfExcutionInNum =
+									executingLine.loopObject.originalNumOfExcutionInNum;
 							return executingLine.loopObject.endIndex + 1;
 						}
 						else{
-							programLineObjects.get(executingLine.loopObject.startIndex).loopObject.previousLoops.remove(0);
-							executingLine.loopObject.numOfExcutionInNum = executingLine.loopObject.originalNumOfExcutionInNum;
+							//We are done with the parent loop, so we should remove it from the previous loop list
+							programLineObjects.get(
+									executingLine.loopObject.startIndex).loopObject.previousLoops.remove(0);
+
+							//Restoring the number of execution
+							executingLine.loopObject.numOfExcutionInNum =
+									executingLine.loopObject.originalNumOfExcutionInNum;
 							return executingLine.loopObject.endIndex + 1;
 						}
 					}
 					return executingLine.loopObject.endIndex + 1;
 				}
 			}
-			//executingLine.loopObject.numOfExcution
+
 		}
+
+		//If it is loop end, we return the index of the start of the loop
 		else if (executingLine.type == ProgramLineType.LOOPEND){
 			return executingLine.loopObject.startIndex;
 		}
+
+		//In the case of unhandled, we return -1 to indicate error.
 		return -1;
 	}
 
